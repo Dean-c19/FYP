@@ -52,4 +52,9 @@ public class AuthController {
     public String dashboard() {
         return "dashboard";
     }
+
+    @GetMapping("/live-global-threats")
+    public String liveGlobalThreats() {
+        return "live-global-threats";
+    }
 }
