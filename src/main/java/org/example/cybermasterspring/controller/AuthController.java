@@ -57,4 +57,9 @@ public class AuthController {
     public String liveGlobalThreats() {
         return "live-global-threats";
     }
+
+    @GetMapping("/cybernews")
+    public String cyberNews() {
+        return "cybernews";
+    }
 }
