@@ -1,6 +1,7 @@
 package org.example.cybermasterspring.controller;
 
 import org.example.cybermasterspring.dto.UserRegistrationDto;
+import org.example.cybermasterspring.service.CyberNewsService;
 import org.example.cybermasterspring.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -14,9 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class AuthController {
 
     private final UserService userService;
+    private final CyberNewsService cyberNewsService;
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, CyberNewsService cyberNewsService) {
         this.userService = userService;
+        this.cyberNewsService = cyberNewsService;
     }
 
     @GetMapping("/login")
@@ -59,7 +62,8 @@ public class AuthController {
     }
 
     @GetMapping("/cybernews")
-    public String cyberNews() {
+    public String cyberNews(Model model) {
+        model.addAttribute("cyberNewsItems", cyberNewsService.getLatest(10));
         return "cybernews";
     }
 }

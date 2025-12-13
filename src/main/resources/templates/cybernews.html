@@ -34,8 +34,39 @@
 </nav>
 
 <div class="container mt-5">
-    <h1>CyberNews</h1>
-    <p class="lead">Placeholder</p>
+    <div class="row g-4">
+        <div class="col-12 col-lg-7">
+            <h1>CyberNews</h1>
+            <p class="lead">Latest articles from The Hacker News.</p>
+
+            <div class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action bg-dark text-light border-secondary"
+                   th:each="item : ${cyberNewsItems}"
+                   th:href="${item.link}"
+                   target="_blank"
+                   rel="noopener">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1" th:text="${item.title}">Article title</h5>
+                        <small class="text-secondary"
+                               th:text="${item.publishedAt != null} ? ${#dates.format(item.publishedAt, 'MMM dd, yyyy')} : ''">
+                            Jan 01, 2025
+                        </small>
+                    </div>
+                </a>
+
+                <div class="text-secondary mt-3" th:if="${#lists.isEmpty(cyberNewsItems)}">
+                    No articles available right now.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="p-4 bg-secondary rounded">
+                <h2 class="h4">Right Side</h2>
+                <p class="mb-0">for a different feature</p>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>
