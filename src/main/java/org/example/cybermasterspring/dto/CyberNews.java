@@ -6,11 +6,13 @@ public class CyberNews {
     private final String title;
     private final String link;
     private final Date publishedAt;
+    private final String imageUrl;
 
-    public CyberNews(String title, String link, Date publishedAt) {
+    public CyberNews(String title, String link, Date publishedAt, String imageUrl) {
         this.title = title;
         this.link = link;
         this.publishedAt = publishedAt;
+        this.imageUrl = imageUrl;
     }
 
     public String getTitle() {
@@ -23,5 +25,9 @@ public class CyberNews {
 
     public Date getPublishedAt() {
         return publishedAt;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 }
