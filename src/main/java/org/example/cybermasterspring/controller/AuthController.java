@@ -66,4 +66,12 @@ public class AuthController {
         model.addAttribute("cyberNewsItems", cyberNewsService.getLatest(10));
         return "cybernews";
     }
+
+    @GetMapping("/cybernews/article")
+    public String cyberNewsArticle(@org.springframework.web.bind.annotation.RequestParam("url") String url,
+                                   Model model) {
+        model.addAttribute("article", cyberNewsService.getArticleSummary(url));
+        return "cybernews-article";
+    }
+
 }
