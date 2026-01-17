@@ -41,6 +41,16 @@
                 <input id="confirmPassword" type="password" th:field="*{confirmPassword}" class="form-control">
             </div>
 
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="adminToggle" th:field="*{admin}" />
+                <label class="form-check-label" for="adminToggle">Create admin account</label>
+            </div>
+
+            <div class="mb-3" id="adminPasswordGroup" style="display: none;">
+                <label class="form-label" for="adminPassword">Admin Password</label>
+                <input id="adminPassword" type="password" th:field="*{adminPassword}" class="form-control" />
+            </div>
+
             <button type="submit" class="btn btn-success w-100">Sign Up</button>
         </form>
 
@@ -50,5 +60,15 @@
         </p>
     </div>
 </div>
+
+<script>
+    const adminToggle = document.getElementById("adminToggle");
+    const adminPasswordGroup = document.getElementById("adminPasswordGroup");
+    function toggleAdminPassword() {
+        adminPasswordGroup.style.display = adminToggle.checked ? "block" : "none";
+    }
+    adminToggle.addEventListener("change", toggleAdminPassword);
+    toggleAdminPassword();
+</script>
 </body>
 </html>

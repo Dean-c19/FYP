@@ -21,6 +21,10 @@ public class UserRegistrationDto {
     @NotBlank
     private String confirmPassword;
 
+    private boolean admin;
+
+    private String adminPassword;
+
     public String getUsername() { return username; }
 
     public void setUsername(String username) { this.username = username; }
@@ -36,4 +40,12 @@ public class UserRegistrationDto {
     public String getConfirmPassword() { return confirmPassword; }
 
     public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
+
+    public boolean isAdmin() { return admin; }
+
+    public void setAdmin(boolean admin) { this.admin = admin; }
+
+    public String getAdminPassword() { return adminPassword; }
+
+    public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
 }
