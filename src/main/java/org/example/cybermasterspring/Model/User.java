@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -30,6 +31,9 @@ public class User {
     private boolean enabled = true;
 
     private String role = "ROLE_USER";
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
 
     public User() {}
 
@@ -67,4 +71,8 @@ public class User {
     public String getRole() { return role; }
 
     public void setRole(String role) { this.role = role; }
+
+    public LocalDateTime getLastLoginAt() { return lastLoginAt; }
+
+    public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
 }

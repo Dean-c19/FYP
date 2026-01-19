@@ -35,11 +35,21 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Passwords do not match");
         }
 
+        boolean isAdmin = dto.isAdmin();
+        if (isAdmin) {
+            if (dto.getAdminPassword() == null || dto.getAdminPassword().isBlank()) {
+                throw new RuntimeException("Admin password is required");
+            }
+            if (!"CyberAdmin01Cyber".equals(dto.getAdminPassword())) {
+                throw new RuntimeException("Invalid admin password");
+            }
+        }
+
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setRole("ROLE_USER");
+        user.setRole(isAdmin ? "ROLE_ADMIN" : "ROLE_USER");
         user.setEnabled(true);
 
         return userRepository.save(user);

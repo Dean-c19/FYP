@@ -13,6 +13,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import java.time.LocalDateTime;
 
 @Configuration
 public class SecurityConfig {
@@ -56,7 +58,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   DaoAuthenticationProvider authProvider) throws Exception {
+                                                   DaoAuthenticationProvider authProvider,
+                                                   AuthenticationSuccessHandler successHandler) throws Exception {
 
         http.authenticationProvider(authProvider);
 
@@ -71,6 +74,7 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/dashboard", true)
+                        .successHandler(successHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -81,5 +85,17 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler(UserRepository userRepository) {
+        return (request, response, authentication) -> {
+            String username = authentication.getName();
+            userRepository.findByUsername(username).ifPresent(user -> {
+                user.setLastLoginAt(LocalDateTime.now());
+                userRepository.save(user);
+            });
+            response.sendRedirect("/dashboard");
+        };
     }
 }
