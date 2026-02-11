@@ -33,46 +33,53 @@
     </div>
 </nav>
 
-<div class="container mt-5">
+<div class="container mt-4">
     <h1>Welcome to CyberMaster</h1>
     <p class="lead">You are successfully logged in.</p>
 
-    <div class="card bg-secondary text-light mt-4">
+    <div class="card bg-secondary text-light mt-4 admin-controls-card" id="adminControlsCard">
         <div class="card-body">
-            <h2 class="h5 mb-3">Admin Controls</h2>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0">Admin Controls</h2>
+                <span class="badge bg-dark" id="adminUserCount">Users: 0</span>
+            </div>
+            <div class="text-light small mt-1">Click to expand</div>
 
-            <div class="position-relative" th:attr="data-is-admin=${isAdmin}">
-                <div id="admin-controls-content">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-secondary small">User Management</span>
-                        <button class="btn btn-sm btn-outline-light" id="refreshUsersBtn" type="button">Refresh</button>
+            <div class="admin-controls-expanded mt-3">
+                <div class="position-relative" th:attr="data-is-admin=${isAdmin}">
+                    <div id="admin-controls-content">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary small">User Management</span>
+                            <button class="btn btn-sm btn-outline-light" id="refreshUsersBtn" type="button">Refresh</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-striped align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Enabled</th>
+                                        <th>Last Login</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminUsersTbody">
+                                    <tr>
+                                        <td colspan="6" class="text-secondary">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Enabled</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminUsersTbody">
-                                <tr>
-                                    <td colspan="5" class="text-secondary">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
 
-                <div id="admin-controls-locked" th:if="${!isAdmin}"
-                     class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-                     style="backdrop-filter: blur(2px); background: rgba(0,0,0,0.35);">
-                    <div class="text-center">
-                        <div class="fw-semibold">Admin Controls Locked</div>
-                        <div class="text-secondary small">Admin role required</div>
+                    <div id="admin-controls-locked" th:if="${!isAdmin}"
+                         class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                         style="backdrop-filter: blur(2px); background: rgba(0,0,0,0.35);">
+                        <div class="text-center">
+                            <div class="fw-semibold">Admin Controls Locked</div>
+                            <div class="text-secondary small">Admin role required</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -80,11 +87,25 @@
     </div>
 </div>
 
+<style>
+    .admin-controls-card {
+        max-width: 520px;
+    }
+    .admin-controls-expanded {
+        display: none;
+    }
+    .admin-controls-card.is-expanded .admin-controls-expanded {
+        display: block;
+    }
+</style>
+
 <script th:inline="javascript">
     const isAdmin = /*[[${isAdmin}]]*/ false;
     const lockedEl = document.getElementById("admin-controls-locked");
     const tbodyEl = document.getElementById("adminUsersTbody");
     const refreshBtn = document.getElementById("refreshUsersBtn");
+    const adminCard = document.getElementById("adminControlsCard");
+    const adminUserCount = document.getElementById("adminUserCount");
 
     function renderRows(users) {
         tbodyEl.innerHTML = "";
@@ -96,11 +117,13 @@
         }
         users.forEach((u) => {
             const tr = document.createElement("tr");
+            const lastLogin = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : "Never";
             tr.innerHTML = `
                 <td>${u.username}</td>
                 <td>${u.email}</td>
                 <td>${u.role}</td>
                 <td>${u.enabled ? "Yes" : "No"}</td>
+                <td>${lastLogin}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-light" data-id="${u.id}" data-enabled="${u.enabled}">
                         ${u.enabled ? "Disable" : "Enable"}
@@ -117,6 +140,7 @@
             const res = await fetch("/api/admin/users");
             if (!res.ok) throw new Error("Failed");
             const data = await res.json();
+            adminUserCount.textContent = `Users: ${data.length}`;
             renderRows(data);
         } catch {
             tbodyEl.innerHTML = '<tr><td colspan="5" class="text-danger">Failed to load users.</td></tr>';
@@ -152,6 +176,11 @@
     } else {
         loadUsers();
     }
+
+    adminCard.addEventListener("click", (e) => {
+        if (e.target.closest("button")) return;
+        adminCard.classList.toggle("is-expanded");
+    });
 </script>
 </body>
 </html>
