@@ -1,8 +1,10 @@
 package org.example.cybermasterspring.controller;
 
 import org.example.cybermasterspring.dto.UserRegistrationDto;
+import org.example.cybermasterspring.dto.ThreatEvent;
 import org.example.cybermasterspring.dto.ThreatStats;
 import org.example.cybermasterspring.service.CyberNewsService;
+import org.example.cybermasterspring.service.AbuseIpService;
 import org.example.cybermasterspring.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -20,10 +22,12 @@ public class AuthController {
 
     private final UserService userService;
     private final CyberNewsService cyberNewsService;
+    private final AbuseIpService abuseIpService;
 
-    public AuthController(UserService userService, CyberNewsService cyberNewsService) {
+    public AuthController(UserService userService, CyberNewsService cyberNewsService, AbuseIpService abuseIpService) {
         this.userService = userService;
         this.cyberNewsService = cyberNewsService;
+        this.abuseIpService = abuseIpService;
     }
 
     @GetMapping("/login")
@@ -114,6 +118,12 @@ public class AuthController {
                 new ThreatStats("Cross-site scripting", 2)
         ));
         return data;
+    }
+
+    @GetMapping("/api/threat-events")
+    @ResponseBody
+    public java.util.List<ThreatEvent> threatEvents() {
+        return abuseIpService.getThreatEvents();
     }
 
 }

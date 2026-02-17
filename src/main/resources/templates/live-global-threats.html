@@ -76,6 +76,56 @@
         zoom: 1.3
     });
 
+    function toGeoJson(events) {
+        return {
+            type: "FeatureCollection",
+            features: events.map((e) => ({
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [e.lng, e.lat]
+                },
+                properties: {
+                    ip: e.ip,
+                    country: e.country,
+                    score: e.score
+                }
+            }))
+        };
+    }
+
+    async function loadThreatEvents() {
+        try {
+            const res = await fetch("/api/threat-events");
+            const data = await res.json();
+            const source = map.getSource("threat-events");
+            if (source) {
+                source.setData(toGeoJson(data));
+            }
+        } catch (e) {
+
+        }
+    }
+
+    map.on("load", () => {
+        map.addSource("threat-events", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: [] }
+        });
+        map.addLayer({
+            id: "threat-events",
+            type: "circle",
+            source: "threat-events",
+            paint: {
+                "circle-radius": 4,
+                "circle-color": "#ff6b3d",
+                "circle-opacity": 0.7
+            }
+        });
+        loadThreatEvents();
+        setInterval(loadThreatEvents, 300000);
+    });
+
     function renderList(el, items) {
         el.innerHTML = "";
         items.forEach((item) => {
