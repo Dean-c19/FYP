@@ -117,13 +117,35 @@
             type: "circle",
             source: "threat-events",
             paint: {
-                "circle-radius": 4,
-                "circle-color": "#ff6b3d",
-                "circle-opacity": 0.7
+                "circle-radius": 5,
+                "circle-color": "#ff2d2d",
+                "circle-opacity": 0.9,
+                "circle-blur": 0.6
+            }
+        });
+        map.addLayer({
+            id: "threat-events-pulse",
+            type: "circle",
+            source: "threat-events",
+            paint: {
+                "circle-radius": 6,
+                "circle-color": "#ff2d2d",
+                "circle-opacity": 0.4,
+                "circle-blur": 1.0
             }
         });
         loadThreatEvents();
         setInterval(loadThreatEvents, 300000);
+
+        function animatePulse() {
+            const t = (Date.now() % 2000) / 2000;
+            const radius = 6 + t * 16;
+            const opacity = 0.8 * (1 - t);
+            map.setPaintProperty("threat-events-pulse", "circle-radius", radius);
+            map.setPaintProperty("threat-events-pulse", "circle-opacity", opacity);
+            requestAnimationFrame(animatePulse);
+        }
+        animatePulse();
     });
 
     function renderList(el, items) {

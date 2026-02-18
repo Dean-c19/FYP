@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,6 +37,7 @@ public class AbuseIpService {
     public AbuseIpService(GeoIpService geoIpService, @Value("${abuseipdb.api.key:}") String apiKey) {
         this.geoIpService = geoIpService;
         this.apiKey = apiKey;
+        loadCacheFromDisk();
     }
 
     public List<ThreatEvent> getThreatEvents() {
@@ -79,9 +83,36 @@ public class AbuseIpService {
 
             cached = events;
             lastFetchedAt = Instant.now();
+            saveCacheToDisk();
             return cached;
         } catch (Exception e) {
             return cached;
+        }
+    }
+
+    private File cacheFile() {
+        return new File("abuseipdb-cache.json");
+    }
+
+    private void saveCacheToDisk() {
+        try {
+            String json = objectMapper.writeValueAsString(cached);
+            Files.writeString(cacheFile().toPath(), json);
+        } catch (IOException ignored) {
+        }
+    }
+
+    private void loadCacheFromDisk() {
+        File file = cacheFile();
+        if (!file.exists()) {
+            return;
+        }
+        try {
+            String json = Files.readString(file.toPath());
+            ThreatEvent[] events = objectMapper.readValue(json, ThreatEvent[].class);
+            cached = List.of(events);
+            lastFetchedAt = Instant.now();
+        } catch (IOException ignored) {
         }
     }
 }
