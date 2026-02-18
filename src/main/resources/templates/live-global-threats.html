@@ -46,24 +46,6 @@
     <p class="lead">Live threat map</p>
     <div id="threat-map" class="mt-3"></div>
 
-    <div class="row g-4 mt-4">
-        <div class="col-12 col-md-6 col-xl-3">
-            <h2 class="h5">Top Attackers</h2>
-            <ul class="list-unstyled small text-secondary" id="top-attackers"></ul>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <h2 class="h5">Top Attacked</h2>
-            <ul class="list-unstyled small text-secondary" id="top-attacked"></ul>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <h2 class="h5">Top Network Attack Vectors</h2>
-            <ul class="list-unstyled small text-secondary" id="top-vectors"></ul>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <h2 class="h5">Top Application Violations</h2>
-            <ul class="list-unstyled small text-secondary" id="top-app-violations"></ul>
-        </div>
-    </div>
 </div>
 
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -148,30 +130,6 @@
         animatePulse();
     });
 
-    function renderList(el, items) {
-        el.innerHTML = "";
-        items.forEach((item) => {
-            const li = document.createElement("li");
-            li.textContent = `${item.label} ${item.value}`;
-            el.appendChild(li);
-        });
-    }
-
-    async function loadThreatStats() {
-        try {
-            const res = await fetch("/api/threat-stats");
-            const data = await res.json();
-            renderList(document.getElementById("top-attackers"), data.topAttackers || []);
-            renderList(document.getElementById("top-attacked"), data.topAttacked || []);
-            renderList(document.getElementById("top-vectors"), data.topNetworkVectors || []);
-            renderList(document.getElementById("top-app-violations"), data.topAppViolations || []);
-        } catch (e) {
-
-        }
-    }
-
-    loadThreatStats();
-    setInterval(loadThreatStats, 30000);
 </script>
 </body>
 </html>

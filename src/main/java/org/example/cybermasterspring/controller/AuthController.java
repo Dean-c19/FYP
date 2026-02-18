@@ -2,7 +2,6 @@ package org.example.cybermasterspring.controller;
 
 import org.example.cybermasterspring.dto.UserRegistrationDto;
 import org.example.cybermasterspring.dto.ThreatEvent;
-import org.example.cybermasterspring.dto.ThreatStats;
 import org.example.cybermasterspring.service.CyberNewsService;
 import org.example.cybermasterspring.service.AbuseIpService;
 import org.example.cybermasterspring.service.UserService;
@@ -83,41 +82,6 @@ public class AuthController {
                                    Model model) {
         model.addAttribute("article", cyberNewsService.getArticleSummary(url));
         return "cybernews-article";
-    }
-
-    @GetMapping("/api/threat-stats")
-    @ResponseBody
-    public java.util.Map<String, java.util.List<ThreatStats>> threatStats() {
-        java.util.Map<String, java.util.List<ThreatStats>> data = new java.util.HashMap<>();
-        data.put("topAttackers", java.util.List.of(
-                new ThreatStats("United States", 83),
-                new ThreatStats("China", 5),
-                new ThreatStats("Netherlands", 4),
-                new ThreatStats("Singapore", 4),
-                new ThreatStats("Romania", 4)
-        ));
-        data.put("topAttacked", java.util.List.of(
-                new ThreatStats("United States", 33),
-                new ThreatStats("Switzerland", 17),
-                new ThreatStats("India", 17),
-                new ThreatStats("Australia", 17),
-                new ThreatStats("Canada", 16)
-        ));
-        data.put("topNetworkVectors", java.util.List.of(
-                new ThreatStats("UDP Flood", 81),
-                new ThreatStats("TCP Flood", 15),
-                new ThreatStats("Low and Slow Attack", 2),
-                new ThreatStats("DNS Flood", 1),
-                new ThreatStats("IP Flood", 1)
-        ));
-        data.put("topAppViolations", java.util.List.of(
-                new ThreatStats("Access violations", 65),
-                new ThreatStats("Injections", 23),
-                new ThreatStats("Exploits", 7),
-                new ThreatStats("Data theft", 3),
-                new ThreatStats("Cross-site scripting", 2)
-        ));
-        return data;
     }
 
     @GetMapping("/api/threat-events")
