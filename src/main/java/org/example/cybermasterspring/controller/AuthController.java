@@ -22,6 +22,7 @@ public class AuthController {
     private final UserService userService;
     private final CyberNewsService cyberNewsService;
     private final AbuseIpService abuseIpService;
+    
 
     public AuthController(UserService userService, CyberNewsService cyberNewsService, AbuseIpService abuseIpService) {
         this.userService = userService;
