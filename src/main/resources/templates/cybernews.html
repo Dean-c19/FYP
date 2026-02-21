@@ -74,13 +74,49 @@
             </div>
         </div>
 
-        <div class="col-12 col-lg-5">
+        <div class="col-12 col-lg-5 mt-4 mt-lg-5">
             <div class="p-4 bg-secondary rounded">
-                <h2 class="h4">Right Side</h2>
-                <p class="mb-0">for a different feature</p>
+                <h2 class="h4">Most Discussed CVEs</h2>
+                <p class="text-light small mb-3">From CVEInfo trends.</p>
+
+                <ul class="list-unstyled" id="cve-trends-list">
+                    <li class="text-light small">Loading...</li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    async function loadCveTrends() {
+        try {
+            const res = await fetch("/api/cve/most-discussed");
+            const data = await res.json();
+            const list = document.getElementById("cve-trends-list");
+            list.innerHTML = "";
+            if (!data.length) {
+                list.innerHTML = '<li class="text-light small">No data available.</li>';
+                return;
+            }
+            data.forEach((item) => {
+                const li = document.createElement("li");
+                li.className = "mb-2";
+                li.innerHTML = `
+                    <a class="text-light small text-decoration-none" href="${item.link}" target="_blank" rel="noopener">
+                        ${item.cveId}
+                    </a>
+                    <div class="text-secondary small">${item.title}</div>
+                `;
+                list.appendChild(li);
+            });
+        } catch (e) {
+            const list = document.getElementById("cve-trends-list");
+            list.innerHTML = '<li class="text-light small">Failed to load data.</li>';
+        }
+    }
+
+    loadCveTrends();
+    setInterval(loadCveTrends, 21600000);
+</script>
 </body>
 </html>
