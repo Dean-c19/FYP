@@ -3,6 +3,7 @@ package org.example.cybermasterspring.controller;
 import org.example.cybermasterspring.dto.UserRegistrationDto;
 import org.example.cybermasterspring.dto.ThreatEvent;
 import org.example.cybermasterspring.dto.CveTrendItem;
+import org.example.cybermasterspring.dto.CveDetail;
 import org.example.cybermasterspring.service.CyberNewsService;
 import org.example.cybermasterspring.service.AbuseIpService;
 import org.example.cybermasterspring.service.UserService;
@@ -95,10 +96,16 @@ public class AuthController {
         return abuseIpService.getThreatEvents();
     }
 
-    @GetMapping("/api/cve/most-discussed")
+    @GetMapping("/api/cve/recent")
     @ResponseBody
     public java.util.List<CveTrendItem> mostDiscussedCves() {
-        return cveTrendService.getMostDiscussed(6);
+        return cveTrendService.getRecentlyPublished(6);
+    }
+
+    @GetMapping("/api/cve/details")
+    @ResponseBody
+    public CveDetail cveDetails(@org.springframework.web.bind.annotation.RequestParam("cve") String cve) {
+        return cveTrendService.getCveDetail(cve);
     }
 
 }
