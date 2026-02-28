@@ -85,10 +85,26 @@
             </div>
         </div>
     </div>
+
+    <div class="card bg-secondary text-light mt-4 cve-trends-card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0">3 Most recent CVEs from CVEInfo</h2>
+                <a class="btn btn-sm btn-outline-light" th:href="@{/cybernews}">View more</a>
+            </div>
+            <div class="text-secondary small mt-1">Most recent CVEs</div>
+            <ul class="list-group list-group-flush mt-3" id="dashboardCveList">
+                <li class="list-group-item bg-transparent text-secondary border-0 px-0">Loading...</li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 <style>
     .admin-controls-card {
+        max-width: 520px;
+    }
+    .cve-trends-card {
         max-width: 520px;
     }
     .admin-controls-expanded {
@@ -106,6 +122,7 @@
     const refreshBtn = document.getElementById("refreshUsersBtn");
     const adminCard = document.getElementById("adminControlsCard");
     const adminUserCount = document.getElementById("adminUserCount");
+    const dashboardCveList = document.getElementById("dashboardCveList");
 
     function renderRows(users) {
         tbodyEl.innerHTML = "";
@@ -181,6 +198,30 @@
         if (e.target.closest("button")) return;
         adminCard.classList.toggle("is-expanded");
     });
+
+    async function loadDashboardCves() {
+        try {
+            const res = await fetch("/api/cve/recent");
+            if (!res.ok) throw new Error("Failed");
+            const data = await res.json();
+            dashboardCveList.innerHTML = "";
+            const items = data.slice(0, 3);
+            if (!items.length) {
+                dashboardCveList.innerHTML = '<li class="list-group-item bg-transparent text-secondary border-0 px-0">No CVEs available.</li>';
+                return;
+            }
+            items.forEach((item) => {
+                const li = document.createElement("li");
+                li.className = "list-group-item bg-transparent border-0 px-0 text-light";
+                li.innerHTML = `<div class="fw-semibold">${item.cveId}</div><div class="text-secondary small">${item.title}</div>`;
+                dashboardCveList.appendChild(li);
+            });
+        } catch {
+            dashboardCveList.innerHTML = '<li class="list-group-item bg-transparent text-danger border-0 px-0">Failed to load CVEs.</li>';
+        }
+    }
+
+    loadDashboardCves();
 </script>
 </body>
 </html>
