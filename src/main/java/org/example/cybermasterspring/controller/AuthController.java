@@ -83,6 +83,11 @@ public class AuthController {
         return "cybernews";
     }
 
+    @GetMapping("/software-vulnerability-scanner")
+    public String softwareVulnerabilityScanner() {
+        return "software-vulnerability-scanner";
+    }
+
     @GetMapping("/cybernews/article")
     public String cyberNewsArticle(@org.springframework.web.bind.annotation.RequestParam("url") String url,
                                    Model model) {
