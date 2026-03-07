@@ -88,6 +88,15 @@ public class AuthController {
         return "software-vulnerability-scanner";
     }
 
+    @PostMapping("/software-vulnerability-scanner")
+    public String submitSoftwareVulnerabilityScanner(
+            @org.springframework.web.bind.annotation.RequestParam("softwareList") String softwareList,
+            Model model) {
+        model.addAttribute("submitted", true);
+        model.addAttribute("softwareList", softwareList);
+        return "software-vulnerability-scanner";
+    }
+
     @GetMapping("/cybernews/article")
     public String cyberNewsArticle(@org.springframework.web.bind.annotation.RequestParam("url") String url,
                                    Model model) {
