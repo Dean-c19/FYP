@@ -4,6 +4,7 @@ import org.example.cybermasterspring.dto.UserRegistrationDto;
 import org.example.cybermasterspring.dto.ThreatEvent;
 import org.example.cybermasterspring.dto.CveTrendItem;
 import org.example.cybermasterspring.dto.CveDetail;
+import org.example.cybermasterspring.dto.SoftwareItem;
 import org.example.cybermasterspring.service.CyberNewsService;
 import org.example.cybermasterspring.service.AbuseIpService;
 import org.example.cybermasterspring.service.UserService;
@@ -92,9 +93,36 @@ public class AuthController {
     public String submitSoftwareVulnerabilityScanner(
             @org.springframework.web.bind.annotation.RequestParam("softwareList") String softwareList,
             Model model) {
+        java.util.List<SoftwareItem> parsedItems = parseSoftwareList(softwareList);
         model.addAttribute("submitted", true);
         model.addAttribute("softwareList", softwareList);
+        model.addAttribute("parsedItems", parsedItems);
         return "software-vulnerability-scanner";
+    }
+
+    private java.util.List<SoftwareItem> parseSoftwareList(String softwareList) {
+        java.util.List<SoftwareItem> items = new java.util.ArrayList<>();
+        if (softwareList == null || softwareList.isBlank()) {
+            return items;
+        }
+        String[] lines = softwareList.split("\\r?\\n");
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            int colon = trimmed.indexOf(':');
+            if (colon <= 0 || colon == trimmed.length() - 1) {
+                continue;
+            }
+            String name = trimmed.substring(0, colon).trim();
+            String version = trimmed.substring(colon + 1).trim();
+            if (name.isEmpty() || version.isEmpty()) {
+                continue;
+            }
+            items.add(new SoftwareItem(name, version));
+        }
+        return items;
     }
 
     @GetMapping("/cybernews/article")
