@@ -5,10 +5,12 @@ import org.example.cybermasterspring.dto.ThreatEvent;
 import org.example.cybermasterspring.dto.CveTrendItem;
 import org.example.cybermasterspring.dto.CveDetail;
 import org.example.cybermasterspring.dto.SoftwareItem;
+import org.example.cybermasterspring.dto.CveFinding;
 import org.example.cybermasterspring.service.CyberNewsService;
 import org.example.cybermasterspring.service.AbuseIpService;
 import org.example.cybermasterspring.service.UserService;
 import org.example.cybermasterspring.service.CveTrendService;
+import org.example.cybermasterspring.service.CveSearchService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,13 +29,15 @@ public class AuthController {
     private final CyberNewsService cyberNewsService;
     private final AbuseIpService abuseIpService;
     private final CveTrendService cveTrendService;
+    private final CveSearchService cveSearchService;
     
 
-    public AuthController(UserService userService, CyberNewsService cyberNewsService, AbuseIpService abuseIpService, CveTrendService cveTrendService) {
+    public AuthController(UserService userService, CyberNewsService cyberNewsService, AbuseIpService abuseIpService, CveTrendService cveTrendService, CveSearchService cveSearchService) {
         this.userService = userService;
         this.cyberNewsService = cyberNewsService;
         this.abuseIpService = abuseIpService;
         this.cveTrendService = cveTrendService;
+        this.cveSearchService = cveSearchService;
     }
 
     @GetMapping("/login")
@@ -94,9 +98,11 @@ public class AuthController {
             @org.springframework.web.bind.annotation.RequestParam("softwareList") String softwareList,
             Model model) {
         java.util.List<SoftwareItem> parsedItems = parseSoftwareList(softwareList);
+        java.util.List<CveFinding> findings = cveSearchService.scan(parsedItems);
         model.addAttribute("submitted", true);
         model.addAttribute("softwareList", softwareList);
         model.addAttribute("parsedItems", parsedItems);
+        model.addAttribute("findings", findings);
         return "software-vulnerability-scanner";
     }
 
