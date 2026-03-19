@@ -117,6 +117,17 @@ public class AuthController {
             if (trimmed.isEmpty()) {
                 continue;
             }
+            if (trimmed.contains("|") && trimmed.contains(":")) {
+                String[] vendorSplit = trimmed.split("\\|", 2);
+                String[] versionSplit = vendorSplit[1].split(":", 2);
+                String vendor = vendorSplit[0].trim();
+                String product = versionSplit[0].trim();
+                String version = versionSplit.length > 1 ? versionSplit[1].trim() : "";
+                if (!vendor.isEmpty() && !product.isEmpty() && !version.isEmpty()) {
+                    items.add(new SoftwareItem(vendor + " " + product, version));
+                }
+                continue;
+            }
             int colon = trimmed.indexOf(':');
             if (colon <= 0 || colon == trimmed.length() - 1) {
                 continue;
