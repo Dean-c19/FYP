@@ -96,13 +96,16 @@ public class AuthController {
     @PostMapping("/software-vulnerability-scanner")
     public String submitSoftwareVulnerabilityScanner(
             @org.springframework.web.bind.annotation.RequestParam("softwareList") String softwareList,
+            @org.springframework.web.bind.annotation.RequestParam(value = "exactOnly", required = false) String exactOnly,
             Model model) {
         java.util.List<SoftwareItem> parsedItems = parseSoftwareList(softwareList);
-        java.util.List<CveFinding> findings = cveSearchService.scan(parsedItems);
+        boolean exactMatchOnly = "on".equalsIgnoreCase(exactOnly);
+        java.util.List<CveFinding> findings = cveSearchService.scan(parsedItems, exactMatchOnly);
         model.addAttribute("submitted", true);
         model.addAttribute("softwareList", softwareList);
         model.addAttribute("parsedItems", parsedItems);
         model.addAttribute("findings", findings);
+        model.addAttribute("exactOnly", exactMatchOnly);
         return "software-vulnerability-scanner";
     }
 

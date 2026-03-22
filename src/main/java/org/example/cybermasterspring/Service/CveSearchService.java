@@ -21,7 +21,7 @@ public class CveSearchService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<CveFinding> scan(List<SoftwareItem> items) {
+    public List<CveFinding> scan(List<SoftwareItem> items, boolean exactOnly) {
         List<CveFinding> findings = new ArrayList<>();
         for (SoftwareItem item : items) {
             String[] vendorProduct = deriveVendorProduct(item.getName());
@@ -39,6 +39,9 @@ public class CveSearchService {
                 }
                 JsonNode cve = extractCveNode(entry);
                 if (cve == null) {
+                    continue;
+                }
+                if (exactOnly && !matchesVersion(cve, item.getVersion())) {
                     continue;
                 }
                 String cveId = extractCveId(cve, entry);
@@ -194,6 +197,33 @@ public class CveSearchService {
         } catch (DateTimeParseException e) {
             return raw;
         }
+    }
+
+    private boolean matchesVersion(JsonNode cve, String version) {
+        if (version == null || version.isBlank()) {
+            return true;
+        }
+        String v = version.trim();
+        JsonNode affected = cve.path("containers").path("cna").path("affected");
+        if (affected.isArray()) {
+            for (JsonNode a : affected) {
+                JsonNode versions = a.path("versions");
+                if (versions.isArray()) {
+                    for (JsonNode ver : versions) {
+                        String verValue = ver.path("version").asText("");
+                        if (verValue.contains(v)) {
+                            return true;
+                        }
+                        String lessThan = ver.path("lessThan").asText("");
+                        if (lessThan.contains(v)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        String summary = extractSummary(cve);
+        return summary.contains(v);
     }
 
     private String[] deriveVendorProduct(String name) {
