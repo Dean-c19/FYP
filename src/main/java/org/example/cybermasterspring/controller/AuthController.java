@@ -11,6 +11,7 @@ import org.example.cybermasterspring.service.AbuseIpService;
 import org.example.cybermasterspring.service.UserService;
 import org.example.cybermasterspring.service.CveTrendService;
 import org.example.cybermasterspring.service.CveSearchService;
+import org.example.cybermasterspring.service.VulnerabilityScanService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,14 +31,21 @@ public class AuthController {
     private final AbuseIpService abuseIpService;
     private final CveTrendService cveTrendService;
     private final CveSearchService cveSearchService;
+    private final VulnerabilityScanService vulnerabilityScanService;
     
 
-    public AuthController(UserService userService, CyberNewsService cyberNewsService, AbuseIpService abuseIpService, CveTrendService cveTrendService, CveSearchService cveSearchService) {
+    public AuthController(UserService userService,
+                          CyberNewsService cyberNewsService,
+                          AbuseIpService abuseIpService,
+                          CveTrendService cveTrendService,
+                          CveSearchService cveSearchService,
+                          VulnerabilityScanService vulnerabilityScanService) {
         this.userService = userService;
         this.cyberNewsService = cyberNewsService;
         this.abuseIpService = abuseIpService;
         this.cveTrendService = cveTrendService;
         this.cveSearchService = cveSearchService;
+        this.vulnerabilityScanService = vulnerabilityScanService;
     }
 
     @GetMapping("/login")
@@ -97,10 +105,14 @@ public class AuthController {
     public String submitSoftwareVulnerabilityScanner(
             @org.springframework.web.bind.annotation.RequestParam("softwareList") String softwareList,
             @org.springframework.web.bind.annotation.RequestParam(value = "exactOnly", required = false) String exactOnly,
+            Authentication authentication,
             Model model) {
         java.util.List<SoftwareItem> parsedItems = parseSoftwareList(softwareList);
         boolean exactMatchOnly = "on".equalsIgnoreCase(exactOnly);
         java.util.List<CveFinding> findings = cveSearchService.scan(parsedItems, exactMatchOnly);
+        if (authentication != null && authentication.isAuthenticated()) {
+            vulnerabilityScanService.saveScan(authentication.getName(), softwareList, exactMatchOnly, findings);
+        }
         model.addAttribute("submitted", true);
         model.addAttribute("softwareList", softwareList);
         model.addAttribute("parsedItems", parsedItems);
