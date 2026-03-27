@@ -6,6 +6,7 @@ import org.example.cybermasterspring.dto.CveTrendItem;
 import org.example.cybermasterspring.dto.CveDetail;
 import org.example.cybermasterspring.dto.SoftwareItem;
 import org.example.cybermasterspring.dto.CveFinding;
+import org.example.cybermasterspring.dto.ScanHistoryItem;
 import org.example.cybermasterspring.service.CyberNewsService;
 import org.example.cybermasterspring.service.AbuseIpService;
 import org.example.cybermasterspring.service.UserService;
@@ -174,6 +175,15 @@ public class AuthController {
     @ResponseBody
     public java.util.List<CveTrendItem> mostDiscussedCves() {
         return cveTrendService.getRecentlyPublished(6);
+    }
+
+    @GetMapping("/api/scans/history")
+    @ResponseBody
+    public java.util.List<ScanHistoryItem> scanHistory(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return java.util.List.of();
+        }
+        return vulnerabilityScanService.getUserScanHistory(authentication.getName());
     }
 
     @GetMapping("/api/cve/details")

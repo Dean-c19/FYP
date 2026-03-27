@@ -1,8 +1,10 @@
 package org.example.cybermasterspring.controller;
 
 import org.example.cybermasterspring.dto.AdminUserDto;
+import org.example.cybermasterspring.dto.ScanHistoryItem;
 import org.example.cybermasterspring.model.User;
 import org.example.cybermasterspring.repository.UserRepository;
+import org.example.cybermasterspring.service.VulnerabilityScanService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -17,9 +19,12 @@ import java.util.Map;
 public class AdminController {
 
     private final UserRepository userRepository;
+    private final VulnerabilityScanService vulnerabilityScanService;
 
-    public AdminController(UserRepository userRepository) {
+    public AdminController(UserRepository userRepository,
+                           VulnerabilityScanService vulnerabilityScanService) {
         this.userRepository = userRepository;
+        this.vulnerabilityScanService = vulnerabilityScanService;
     }
 
     @GetMapping("/api/admin/users")
@@ -39,6 +44,12 @@ public class AdminController {
         user.setEnabled(enabled);
         userRepository.save(user);
         return toDto(user);
+    }
+
+    @GetMapping("/api/admin/scans/history")
+    @ResponseBody
+    public List<ScanHistoryItem> getAllScanHistory() {
+        return vulnerabilityScanService.getAllScanHistory();
     }
 
     private AdminUserDto toDto(User user) {
