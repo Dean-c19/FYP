@@ -24,13 +24,31 @@ public class ScanReportService {
             intro = "This scan identified " + findings.size() + " known vulnerabilities affecting the submitted software.";
         }
 
+        int highSeverity = 0;
+        int mediumSeverity = 0;
+        int lowSeverity = 0;
+
+        for (CveFinding finding : findings) {
+            Double cvss = finding.getCvss();
+            if (cvss == null) {
+                continue;
+            }
+            if (cvss >= 7.0) {
+                highSeverity++;
+            } else if (cvss >= 4.0) {
+                mediumSeverity++;
+            } else {
+                lowSeverity++;
+            }
+        }
+
         return new ScanReport(
                 title,
                 intro,
                 findings.size(),
-                0,
-                0,
-                0,
+                highSeverity,
+                mediumSeverity,
+                lowSeverity,
                 "Unknown",
                 List.of(),
                 List.of(),
