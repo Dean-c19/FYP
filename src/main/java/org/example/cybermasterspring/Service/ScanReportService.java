@@ -5,6 +5,7 @@ import org.example.cybermasterspring.dto.ScanReport;
 import org.example.cybermasterspring.dto.SoftwareItem;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -27,11 +28,15 @@ public class ScanReportService {
         int highSeverity = 0;
         int mediumSeverity = 0;
         int lowSeverity = 0;
+        double maxCvss = -1.0;
 
         for (CveFinding finding : findings) {
             Double cvss = finding.getCvss();
             if (cvss == null) {
                 continue;
+            }
+            if (cvss > maxCvss) {
+                maxCvss = cvss;
             }
             if (cvss >= 7.0) {
                 highSeverity++;
@@ -42,6 +47,31 @@ public class ScanReportService {
             }
         }
 
+        String overallRiskLevel;
+        if (maxCvss >= 8.0) {
+            overallRiskLevel = "High";
+        } else if (maxCvss >= 4.0) {
+            overallRiskLevel = "Medium";
+        } else if (!findings.isEmpty()) {
+            overallRiskLevel = "Low";
+        } else {
+            overallRiskLevel = "None";
+        }
+
+        List<String> notableIssues = findings.stream()
+                .sorted(Comparator.comparing(
+                        (CveFinding finding) -> finding.getCvss() == null ? -1.0 : finding.getCvss()
+                ).reversed())
+                .limit(3)
+                .map(finding -> {
+                    String cvssText = finding.getCvss() == null ? "N/A" : String.valueOf(finding.getCvss());
+                    String summary = finding.getSummary() == null ? "No summary available." : finding.getSummary();
+                    return finding.getCveId()
+                            + " (" + finding.getSoftwareName() + " - CVSS " + cvssText + "): "
+                            + summary;
+                })
+                .toList();
+
         return new ScanReport(
                 title,
                 intro,
@@ -49,8 +79,8 @@ public class ScanReportService {
                 highSeverity,
                 mediumSeverity,
                 lowSeverity,
-                "Unknown",
-                List.of(),
+                overallRiskLevel,
+                notableIssues,
                 List.of(),
                 List.of(),
                 ""
