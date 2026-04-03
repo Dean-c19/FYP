@@ -72,6 +72,28 @@ public class ScanReportService {
                 })
                 .toList();
 
+        List<String> riskImpact;
+        if ("High".equals(overallRiskLevel)) {
+            riskImpact = List.of(
+                    "These vulnerabilities may allow code execution, memory corruption or unauthorized access depending on exploit conditions.",
+                    "Successful exploitation could affect system confidentiality, integrity or availability.",
+                    "Attack paths may include malicious websites, downloads or crafted files."
+            );
+        } else if ("Medium".equals(overallRiskLevel)) {
+            riskImpact = List.of(
+                    "These vulnerabilities may allow browser instability, information disclosure or bypass of some security controls.",
+                    "Exploitation may still be practical in real-world web or file-based attack scenarios."
+            );
+        } else if ("Low".equals(overallRiskLevel)) {
+            riskImpact = List.of(
+                    "The identified issues appear lower risk but they still weaken the software security posture."
+            );
+        } else {
+            riskImpact = List.of(
+                    "No direct vulnerability impact was identified from the current scan results."
+            );
+        }
+
         return new ScanReport(
                 title,
                 intro,
@@ -81,7 +103,7 @@ public class ScanReportService {
                 lowSeverity,
                 overallRiskLevel,
                 notableIssues,
-                List.of(),
+                riskImpact,
                 List.of(),
                 ""
         );
