@@ -94,6 +94,21 @@ public class ScanReportService {
             );
         }
 
+        List<String> recommendations;
+        if ("None".equals(overallRiskLevel)) {
+            recommendations = List.of(
+                    "No immediate remediation action is indicated by the current results.",
+                    "Continue regular patching and repeat scans when software versions change."
+            );
+        } else {
+            recommendations = List.of(
+                    "Update the affected software to the latest available version.",
+                    "Enable automatic updates where possible.",
+                    "Avoid opening untrusted files, downloads or links.",
+                    "Use endpoint protection and routine patch management."
+            );
+        }
+
         return new ScanReport(
                 title,
                 intro,
@@ -104,7 +119,7 @@ public class ScanReportService {
                 overallRiskLevel,
                 notableIssues,
                 riskImpact,
-                List.of(),
+                recommendations,
                 ""
         );
     }
