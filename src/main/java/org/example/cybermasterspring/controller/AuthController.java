@@ -6,12 +6,14 @@ import org.example.cybermasterspring.dto.CveTrendItem;
 import org.example.cybermasterspring.dto.CveDetail;
 import org.example.cybermasterspring.dto.SoftwareItem;
 import org.example.cybermasterspring.dto.CveFinding;
+import org.example.cybermasterspring.dto.ScanReport;
 import org.example.cybermasterspring.dto.ScanHistoryItem;
 import org.example.cybermasterspring.service.CyberNewsService;
 import org.example.cybermasterspring.service.AbuseIpService;
 import org.example.cybermasterspring.service.UserService;
 import org.example.cybermasterspring.service.CveTrendService;
 import org.example.cybermasterspring.service.CveSearchService;
+import org.example.cybermasterspring.service.ScanReportService;
 import org.example.cybermasterspring.service.VulnerabilityScanService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -32,6 +34,7 @@ public class AuthController {
     private final AbuseIpService abuseIpService;
     private final CveTrendService cveTrendService;
     private final CveSearchService cveSearchService;
+    private final ScanReportService scanReportService;
     private final VulnerabilityScanService vulnerabilityScanService;
     
 
@@ -40,12 +43,14 @@ public class AuthController {
                           AbuseIpService abuseIpService,
                           CveTrendService cveTrendService,
                           CveSearchService cveSearchService,
+                          ScanReportService scanReportService,
                           VulnerabilityScanService vulnerabilityScanService) {
         this.userService = userService;
         this.cyberNewsService = cyberNewsService;
         this.abuseIpService = abuseIpService;
         this.cveTrendService = cveTrendService;
         this.cveSearchService = cveSearchService;
+        this.scanReportService = scanReportService;
         this.vulnerabilityScanService = vulnerabilityScanService;
     }
 
@@ -111,6 +116,7 @@ public class AuthController {
         java.util.List<SoftwareItem> parsedItems = parseSoftwareList(softwareList);
         boolean exactMatchOnly = "on".equalsIgnoreCase(exactOnly);
         java.util.List<CveFinding> findings = cveSearchService.scan(parsedItems, exactMatchOnly);
+        ScanReport report = scanReportService.buildReport(parsedItems, findings);
         if (authentication != null && authentication.isAuthenticated()) {
             vulnerabilityScanService.saveScan(authentication.getName(), softwareList, exactMatchOnly, findings);
         }
@@ -118,6 +124,7 @@ public class AuthController {
         model.addAttribute("softwareList", softwareList);
         model.addAttribute("parsedItems", parsedItems);
         model.addAttribute("findings", findings);
+        model.addAttribute("report", report);
         model.addAttribute("exactOnly", exactMatchOnly);
         return "software-vulnerability-scanner";
     }
