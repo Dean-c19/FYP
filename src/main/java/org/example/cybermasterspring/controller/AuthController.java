@@ -118,7 +118,7 @@ public class AuthController {
         java.util.List<CveFinding> findings = cveSearchService.scan(parsedItems, exactMatchOnly);
         ScanReport report = scanReportService.buildReport(parsedItems, findings);
         if (authentication != null && authentication.isAuthenticated()) {
-            vulnerabilityScanService.saveScan(authentication.getName(), softwareList, exactMatchOnly, findings);
+            vulnerabilityScanService.saveScan(authentication.getName(), softwareList, exactMatchOnly, findings, report);
         }
         model.addAttribute("submitted", true);
         model.addAttribute("softwareList", softwareList);
