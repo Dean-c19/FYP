@@ -180,6 +180,17 @@
     .admin-controls-card.is-expanded .admin-controls-expanded {
         display: block;
     }
+    .history-label {
+        color: #d1d5db;
+    }
+    .history-report-card {
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.06);
+    }
+    .history-report-title {
+        color: #ffffff;
+        letter-spacing: 0.02em;
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -342,23 +353,54 @@
                 `).join("")
                 : '<div class="small text-secondary mt-2">No findings were saved for this scan.</div>';
 
+            const report = item.report;
+            const reportMarkup = report ? `
+                <div class="mt-4 border-top border-secondary pt-3">
+                    <div class="history-report-card rounded p-3">
+                    <div class="history-report-title fw-bold">Saved Report Snapshot</div>
+                    <div class="fw-semibold mt-2">${escapeHtml(report.title || "Saved report")}</div>
+                    <div class="small text-light mt-2">${escapeHtml(report.intro || "")}</div>
+                    <div class="small mt-3">Total Vulnerabilities: ${report.totalVulnerabilities ?? 0}</div>
+                    <div class="small">High Severity: ${report.highSeverity ?? 0}</div>
+                    <div class="small">Medium Severity: ${report.mediumSeverity ?? 0}</div>
+                    <div class="small">Low Severity: ${report.lowSeverity ?? 0}</div>
+                    <div class="small">Overall Risk Level: ${escapeHtml(report.overallRiskLevel || "Unknown")}</div>
+                    <div class="small history-label mt-3">Notable Issues</div>
+                    <ul class="mb-0 ps-3">
+                        ${(report.notableIssues || []).map((issue) => `<li>${escapeHtml(issue)}</li>`).join("") || "<li>No notable issues saved.</li>"}
+                    </ul>
+                    <div class="small history-label mt-3">Risk Impact</div>
+                    <ul class="mb-0 ps-3">
+                        ${(report.riskImpact || []).map((impact) => `<li>${escapeHtml(impact)}</li>`).join("") || "<li>No risk impact saved.</li>"}
+                    </ul>
+                    <div class="small history-label mt-3">Recommendations</div>
+                    <ul class="mb-0 ps-3">
+                        ${(report.recommendations || []).map((recommendation) => `<li>${escapeHtml(recommendation)}</li>`).join("") || "<li>No recommendations saved.</li>"}
+                    </ul>
+                    <div class="small history-label mt-3">Conclusion</div>
+                    <div class="small">${escapeHtml(report.conclusion || "No conclusion saved.")}</div>
+                    </div>
+                </div>
+            ` : '<div class="small text-secondary mt-4">No saved report snapshot for this scan.</div>';
+
             wrapper.innerHTML = `
                 <div class="d-flex justify-content-between align-items-start gap-3">
                     <div>
                         <div class="fw-semibold">Scanned ${escapeHtml(formatScanDate(item.scannedAt))}</div>
-                        <div class="small text-secondary">Exact version matches only: ${item.exactOnly ? "Yes" : "No"}</div>
+                        <div class="small history-label">Exact version matches only: ${item.exactOnly ? "Yes" : "No"}</div>
                     </div>
                     <button class="btn btn-sm btn-outline-light user-history-details-btn" type="button">View more details</button>
                 </div>
                 <div class="mt-3">
-                    <div class="small text-secondary mb-2">Software searched</div>
+                    <div class="small history-label mb-2">Software searched</div>
                     <ul class="mb-0 ps-3">
                         ${softwareList || "<li>No software entries saved.</li>"}
                     </ul>
                 </div>
                 <div class="mt-3 d-none user-history-details">
-                    <div class="small text-secondary mb-2">Findings</div>
+                    <div class="small history-label mb-2">Findings</div>
                     ${findingsMarkup}
+                    ${reportMarkup}
                 </div>
             `;
 
@@ -413,24 +455,55 @@
                 `).join("")
                 : '<div class="small text-secondary mt-2">No findings were saved for this scan.</div>';
 
+            const report = item.report;
+            const reportMarkup = report ? `
+                <div class="mt-4 border-top border-secondary pt-3">
+                    <div class="history-report-card rounded p-3">
+                    <div class="history-report-title fw-bold">Saved Report Snapshot</div>
+                    <div class="fw-semibold mt-2">${escapeHtml(report.title || "Saved report")}</div>
+                    <div class="small text-light mt-2">${escapeHtml(report.intro || "")}</div>
+                    <div class="small mt-3">Total Vulnerabilities: ${report.totalVulnerabilities ?? 0}</div>
+                    <div class="small">High Severity: ${report.highSeverity ?? 0}</div>
+                    <div class="small">Medium Severity: ${report.mediumSeverity ?? 0}</div>
+                    <div class="small">Low Severity: ${report.lowSeverity ?? 0}</div>
+                    <div class="small">Overall Risk Level: ${escapeHtml(report.overallRiskLevel || "Unknown")}</div>
+                    <div class="small history-label mt-3">Notable Issues</div>
+                    <ul class="mb-0 ps-3">
+                        ${(report.notableIssues || []).map((issue) => `<li>${escapeHtml(issue)}</li>`).join("") || "<li>No notable issues saved.</li>"}
+                    </ul>
+                    <div class="small history-label mt-3">Risk Impact</div>
+                    <ul class="mb-0 ps-3">
+                        ${(report.riskImpact || []).map((impact) => `<li>${escapeHtml(impact)}</li>`).join("") || "<li>No risk impact saved.</li>"}
+                    </ul>
+                    <div class="small history-label mt-3">Recommendations</div>
+                    <ul class="mb-0 ps-3">
+                        ${(report.recommendations || []).map((recommendation) => `<li>${escapeHtml(recommendation)}</li>`).join("") || "<li>No recommendations saved.</li>"}
+                    </ul>
+                    <div class="small history-label mt-3">Conclusion</div>
+                    <div class="small">${escapeHtml(report.conclusion || "No conclusion saved.")}</div>
+                    </div>
+                </div>
+            ` : '<div class="small text-secondary mt-4">No saved report snapshot for this scan.</div>';
+
             wrapper.innerHTML = `
                 <div class="d-flex justify-content-between align-items-start gap-3">
                     <div>
                         <div class="fw-semibold">${escapeHtml(item.username || "Unknown user")}</div>
-                        <div class="small text-secondary">Scanned ${escapeHtml(formatScanDate(item.scannedAt))}</div>
-                        <div class="small text-secondary">Exact version matches only: ${item.exactOnly ? "Yes" : "No"}</div>
+                        <div class="small history-label">Scanned ${escapeHtml(formatScanDate(item.scannedAt))}</div>
+                        <div class="small history-label">Exact version matches only: ${item.exactOnly ? "Yes" : "No"}</div>
                     </div>
                     <button class="btn btn-sm btn-outline-light admin-history-details-btn" type="button">View more details</button>
                 </div>
                 <div class="mt-3">
-                    <div class="small text-secondary mb-2">Software searched</div>
+                    <div class="small history-label mb-2">Software searched</div>
                     <ul class="mb-0 ps-3">
                         ${softwareList || "<li>No software entries saved.</li>"}
                     </ul>
                 </div>
                 <div class="mt-3 d-none admin-history-details">
-                    <div class="small text-secondary mb-2">Findings</div>
+                    <div class="small history-label mb-2">Findings</div>
                     ${findingsMarkup}
+                    ${reportMarkup}
                 </div>
             `;
 
