@@ -11,19 +11,22 @@ public class ScanHistoryItem {
     private final boolean exactOnly;
     private final List<ScanHistorySoftware> softwareItems;
     private final List<ScanHistoryFinding> findings;
+    private final ScanHistoryReport report;
 
     public ScanHistoryItem(Long id,
                            String username,
                            LocalDateTime scannedAt,
                            boolean exactOnly,
                            List<ScanHistorySoftware> softwareItems,
-                           List<ScanHistoryFinding> findings) {
+                           List<ScanHistoryFinding> findings,
+                           ScanHistoryReport report) {
         this.id = id;
         this.username = username;
         this.scannedAt = scannedAt;
         this.exactOnly = exactOnly;
         this.softwareItems = softwareItems;
         this.findings = findings;
+        this.report = report;
     }
 
     public Long getId() {
@@ -48,5 +51,9 @@ public class ScanHistoryItem {
 
     public List<ScanHistoryFinding> getFindings() {
         return findings;
+    }
+
+    public ScanHistoryReport getReport() {
+        return report;
     }
 }
