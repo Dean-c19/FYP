@@ -1,6 +1,7 @@
 package org.example.cybermasterspring.service;
 
 import org.example.cybermasterspring.dto.CveFinding;
+import org.example.cybermasterspring.dto.ScanReportLLM;
 import org.example.cybermasterspring.dto.ScanReport;
 import org.example.cybermasterspring.dto.SoftwareItem;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,12 @@ import java.util.List;
 
 @Service
 public class ScanReportService {
+
+    private final ScanReportLLMService scanReportLLMService;
+
+    public ScanReportService(ScanReportLLMService scanReportLLMService) {
+        this.scanReportLLMService = scanReportLLMService;
+    }
 
     public ScanReport buildReport(List<SoftwareItem> parsedItems, List<CveFinding> findings) {
         String title = "Vulnerability Scan Summary";
@@ -72,6 +79,60 @@ public class ScanReportService {
                 })
                 .toList();
 
+        String softwareName = parsedItems.isEmpty() ? "" : parsedItems.get(0).getName();
+        String softwareVersion = parsedItems.isEmpty() ? "" : parsedItems.get(0).getVersion();
+        ScanReportLLM llmFields = scanReportLLMService.buildLLMFields(
+                softwareName,
+                softwareVersion,
+                findings.size(),
+                highSeverity,
+                mediumSeverity,
+                lowSeverity,
+                overallRiskLevel,
+                notableIssues
+        );
+        if (llmFields == null) {
+            llmFields = buildFallbackLLMFields(
+                    softwareName,
+                    softwareVersion,
+                    findings.size(),
+                    overallRiskLevel,
+                    notableIssues
+            );
+        }
+
+        return new ScanReport(
+                title,
+                llmFields.getIntro(),
+                findings.size(),
+                highSeverity,
+                mediumSeverity,
+                lowSeverity,
+                overallRiskLevel,
+                notableIssues,
+                llmFields.getRiskImpact(),
+                llmFields.getRecommendations(),
+                llmFields.getExecutiveSummary()
+        );
+    }
+
+    private ScanReportLLM buildFallbackLLMFields(String softwareName,
+                                                 String softwareVersion,
+                                                 int totalVulnerabilities,
+                                                 String overallRiskLevel,
+                                                 List<String> notableIssues) {
+        String displayName = softwareName == null || softwareName.isBlank() ? "the scanned software" : softwareName;
+        String displayVersion = softwareVersion == null || softwareVersion.isBlank() ? "unknown version" : softwareVersion;
+
+        String intro;
+        if (totalVulnerabilities == 0) {
+            intro = "The scan of " + displayName + " (" + displayVersion + ") did not identify matching vulnerabilities in the current results.";
+        } else {
+            intro = "The scan of " + displayName + " (" + displayVersion + ") identified "
+                    + totalVulnerabilities + " known vulnerabilities. The current overall risk level is "
+                    + overallRiskLevel + ".";
+        }
+
         List<String> riskImpact;
         if ("High".equals(overallRiskLevel)) {
             riskImpact = List.of(
@@ -110,28 +171,16 @@ public class ScanReportService {
         }
 
         String executiveSummary;
-        if ("High".equals(overallRiskLevel)) {
-            executiveSummary = "The scan indicates a high security risk and prompt patching is recommended.";
-        } else if ("Medium".equals(overallRiskLevel)) {
-            executiveSummary = "The scan indicates a moderate security risk and remediation should be scheduled soon.";
-        } else if ("Low".equals(overallRiskLevel)) {
-            executiveSummary = "The scan indicates a lower security risk, but patching is still recommended.";
+        if (totalVulnerabilities == 0) {
+            executiveSummary = "This scan did not identify matching vulnerabilities for " + displayName
+                    + " (" + displayVersion + ") in the current dataset.";
         } else {
-            executiveSummary = "No direct security issues were identified from the current scan results.";
+            String topIssue = notableIssues.isEmpty() ? "the identified findings" : notableIssues.get(0);
+            executiveSummary = displayName + " (" + displayVersion + ") currently presents a "
+                    + overallRiskLevel.toLowerCase() + " security risk based on " + totalVulnerabilities
+                    + " matched vulnerabilities. Immediate attention should focus on " + topIssue + ".";
         }
 
-        return new ScanReport(
-                title,
-                intro,
-                findings.size(),
-                highSeverity,
-                mediumSeverity,
-                lowSeverity,
-                overallRiskLevel,
-                notableIssues,
-                riskImpact,
-                recommendations,
-                executiveSummary
-        );
+        return new ScanReportLLM(intro, riskImpact, recommendations, executiveSummary);
     }
 }
