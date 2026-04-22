@@ -109,15 +109,15 @@ public class ScanReportService {
             );
         }
 
-        String conclusion;
+        String executiveSummary;
         if ("High".equals(overallRiskLevel)) {
-            conclusion = "The scan indicates a high security risk and prompt patching is recommended.";
+            executiveSummary = "The scan indicates a high security risk and prompt patching is recommended.";
         } else if ("Medium".equals(overallRiskLevel)) {
-            conclusion = "The scan indicates a moderate security risk and remediation should be scheduled soon.";
+            executiveSummary = "The scan indicates a moderate security risk and remediation should be scheduled soon.";
         } else if ("Low".equals(overallRiskLevel)) {
-            conclusion = "The scan indicates a lower security risk, but patching is still recommended.";
+            executiveSummary = "The scan indicates a lower security risk, but patching is still recommended.";
         } else {
-            conclusion = "No direct security issues were identified from the current scan results.";
+            executiveSummary = "No direct security issues were identified from the current scan results.";
         }
 
         return new ScanReport(
@@ -131,7 +131,7 @@ public class ScanReportService {
                 notableIssues,
                 riskImpact,
                 recommendations,
-                conclusion
+                executiveSummary
         );
     }
 }

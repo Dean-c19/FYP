@@ -377,8 +377,8 @@
                     <ul class="mb-0 ps-3">
                         ${(report.recommendations || []).map((recommendation) => `<li>${escapeHtml(recommendation)}</li>`).join("") || "<li>No recommendations saved.</li>"}
                     </ul>
-                    <div class="small history-label mt-3">Conclusion</div>
-                    <div class="small">${escapeHtml(report.conclusion || "No conclusion saved.")}</div>
+                    <div class="small history-label mt-3">Executive Summary</div>
+                    <div class="small">${escapeHtml(report.executiveSummary || "No executive summary saved.")}</div>
                     </div>
                 </div>
             ` : '<div class="small text-secondary mt-4">No saved report snapshot for this scan.</div>';
@@ -479,8 +479,8 @@
                     <ul class="mb-0 ps-3">
                         ${(report.recommendations || []).map((recommendation) => `<li>${escapeHtml(recommendation)}</li>`).join("") || "<li>No recommendations saved.</li>"}
                     </ul>
-                    <div class="small history-label mt-3">Conclusion</div>
-                    <div class="small">${escapeHtml(report.conclusion || "No conclusion saved.")}</div>
+                    <div class="small history-label mt-3">Executive Summary</div>
+                    <div class="small">${escapeHtml(report.executiveSummary || "No executive summary saved.")}</div>
                     </div>
                 </div>
             ` : '<div class="small text-secondary mt-4">No saved report snapshot for this scan.</div>';

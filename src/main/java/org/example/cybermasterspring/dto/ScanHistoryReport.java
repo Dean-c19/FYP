@@ -14,7 +14,7 @@ public class ScanHistoryReport {
     private final List<String> notableIssues;
     private final List<String> riskImpact;
     private final List<String> recommendations;
-    private final String conclusion;
+    private final String executiveSummary;
 
     public ScanHistoryReport(String title, String intro,
                              int totalVulnerabilities,
@@ -25,7 +25,7 @@ public class ScanHistoryReport {
                              List<String> notableIssues,
                              List<String> riskImpact,
                              List<String> recommendations,
-                             String conclusion) {
+                             String executiveSummary) {
         this.title = title;
         this.intro = intro;
         this.totalVulnerabilities = totalVulnerabilities;
@@ -36,7 +36,7 @@ public class ScanHistoryReport {
         this.notableIssues = notableIssues;
         this.riskImpact = riskImpact;
         this.recommendations = recommendations;
-        this.conclusion = conclusion;
+        this.executiveSummary = executiveSummary;
     }
 
     public String getTitle() {
@@ -79,7 +79,7 @@ public class ScanHistoryReport {
         return recommendations;
     }
 
-    public String getConclusion() {
-        return conclusion;
+    public String getExecutiveSummary() {
+        return executiveSummary;
     }
 }
