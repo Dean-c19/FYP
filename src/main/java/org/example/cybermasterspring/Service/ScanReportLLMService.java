@@ -1,6 +1,7 @@
 package org.example.cybermasterspring.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.example.cybermasterspring.dto.ScanReportLLM;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -51,7 +52,7 @@ public class ScanReportLLMService {
         );
         Map<String, Object> requestBody = buildRequestBody(prompt);
         String rawResponse = executeRequest(requestBody);
-        return null;
+        return parseResponse(rawResponse);
     }
 
     private String buildPrompt(String softwareName,
@@ -131,5 +132,61 @@ public class ScanReportLLMService {
                 String.class
         );
         return response.getBody();
+    }
+
+    private ScanReportLLM parseResponse(String rawResponse) {
+        try {
+            JsonNode root = objectMapper.readTree(rawResponse);
+            String jsonText = extractOutputText(root);
+            JsonNode llmNode = objectMapper.readTree(jsonText);
+
+            String intro = llmNode.path("intro").asText("");
+            String executiveSummary = llmNode.path("executiveSummary").asText("");
+            List<String> riskImpact = readStringList(llmNode.path("riskImpact"));
+            List<String> recommendations = readStringList(llmNode.path("recommendations"));
+
+            return new ScanReportLLM(intro, riskImpact, recommendations, executiveSummary);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to parse OpenAI response", e);
+        }
+    }
+
+    private String extractOutputText(JsonNode root) {
+        JsonNode output = root.path("output");
+        if (!output.isArray()) {
+            throw new IllegalStateException("OpenAI response did not contain an output array");
+        }
+
+        for (JsonNode outputItem : output) {
+            JsonNode content = outputItem.path("content");
+            if (!content.isArray()) {
+                continue;
+            }
+            for (JsonNode contentItem : content) {
+                String type = contentItem.path("type").asText("");
+                if ("output_text".equals(type)) {
+                    String text = contentItem.path("text").asText("");
+                    if (!text.isBlank()) {
+                        return text;
+                    }
+                }
+            }
+        }
+
+        throw new IllegalStateException("OpenAI response did not contain output text content");
+    }
+
+    private List<String> readStringList(JsonNode node) {
+        if (!node.isArray()) {
+            return List.of();
+        }
+        List<String> values = new java.util.ArrayList<>();
+        for (JsonNode item : node) {
+            String value = item.asText("");
+            if (!value.isBlank()) {
+                values.add(value);
+            }
+        }
+        return values;
     }
 }
