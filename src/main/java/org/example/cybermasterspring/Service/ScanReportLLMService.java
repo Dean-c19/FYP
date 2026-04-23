@@ -3,7 +3,12 @@ package org.example.cybermasterspring.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.cybermasterspring.dto.ScanReportLLM;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,6 +18,7 @@ import java.util.Map;
 public class ScanReportLLMService {
 
     private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
     private final String openAiApiKey;
     private final String openAiModel;
 
@@ -20,6 +26,7 @@ public class ScanReportLLMService {
                                 @Value("${openai.api.key}") String openAiApiKey,
                                 @Value("${openai.model}") String openAiModel) {
         this.objectMapper = objectMapper;
+        this.restTemplate = new RestTemplate();
         this.openAiApiKey = openAiApiKey;
         this.openAiModel = openAiModel;
     }
@@ -43,6 +50,7 @@ public class ScanReportLLMService {
                 notableIssues
         );
         Map<String, Object> requestBody = buildRequestBody(prompt);
+        String rawResponse = executeRequest(requestBody);
         return null;
     }
 
@@ -109,5 +117,19 @@ public class ScanReportLLMService {
         requestBody.put("input", List.of(message));
         requestBody.put("text", textFormat);
         return requestBody;
+    }
+
+    private String executeRequest(Map<String, Object> requestBody) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(openAiApiKey);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "https://api.openai.com/v1/responses",
+                entity,
+                String.class
+        );
+        return response.getBody();
     }
 }
