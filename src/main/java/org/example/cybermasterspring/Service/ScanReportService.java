@@ -81,16 +81,21 @@ public class ScanReportService {
 
         String softwareName = parsedItems.isEmpty() ? "" : parsedItems.get(0).getName();
         String softwareVersion = parsedItems.isEmpty() ? "" : parsedItems.get(0).getVersion();
-        ScanReportLLM llmFields = scanReportLLMService.buildLLMFields(
-                softwareName,
-                softwareVersion,
-                findings.size(),
-                highSeverity,
-                mediumSeverity,
-                lowSeverity,
-                overallRiskLevel,
-                notableIssues
-        );
+        ScanReportLLM llmFields;
+        try {
+            llmFields = scanReportLLMService.buildLLMFields(
+                    softwareName,
+                    softwareVersion,
+                    findings.size(),
+                    highSeverity,
+                    mediumSeverity,
+                    lowSeverity,
+                    overallRiskLevel,
+                    notableIssues
+            );
+        } catch (RuntimeException e) {
+            llmFields = null;
+        }
         if (llmFields == null) {
             llmFields = buildFallbackLLMFields(
                     softwareName,
