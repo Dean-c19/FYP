@@ -87,6 +87,15 @@ public class ScanReportLLMService {
                 recommendations: array of strings
                 executiveSummary: string
 
+                Writing guidance:
+                - Write for a business and security audience in clear, professional language.
+                - Make the intro specific to the software, version, vulnerability count and overall risk.
+                - Return 2 to 5 riskImpact bullets that explain what the findings could mean in practice.
+                - Return 2 to 5 recommendations bullets with practical remediation advice.
+                - Prefer concise recommendations such as updating, patching, review or monitoring actions.
+                - Only mention an exact fixed version if it is explicitly present in the facts below.
+                - Keep the executiveSummary medium length, specific and action-oriented.
+
                 Facts:
                 Software: %s
                 Version: %s
