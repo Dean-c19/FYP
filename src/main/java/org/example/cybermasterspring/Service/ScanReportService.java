@@ -4,6 +4,8 @@ import org.example.cybermasterspring.dto.CveFinding;
 import org.example.cybermasterspring.dto.ScanReportLLM;
 import org.example.cybermasterspring.dto.ScanReport;
 import org.example.cybermasterspring.dto.SoftwareItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -11,6 +13,8 @@ import java.util.List;
 
 @Service
 public class ScanReportService {
+
+    private static final Logger log = LoggerFactory.getLogger(ScanReportService.class);
 
     private final ScanReportLLMService scanReportLLMService;
 
@@ -80,9 +84,10 @@ public class ScanReportService {
                 .toList();
 
         String softwareName = parsedItems.isEmpty() ? "" : parsedItems.get(0).getName();
-        String softwareVersion = parsedItems.isEmpty() ? "" : parsedItems.get(0).getVersion();
+       String softwareVersion = parsedItems.isEmpty() ? "" : parsedItems.get(0).getVersion();
         ScanReportLLM llmFields;
         try {
+            log.info("Notable issues sent to OpenAI: {}", notableIssues);
             llmFields = scanReportLLMService.buildLLMFields(
                     softwareName,
                     softwareVersion,
@@ -94,9 +99,11 @@ public class ScanReportService {
                     notableIssues
             );
         } catch (RuntimeException e) {
+            log.warn("Falling back to local report wording because OpenAI generation failed", e);
             llmFields = null;
         }
         if (llmFields == null) {
+            log.info("Using local fallback wording for software='{}' version='{}'", softwareName, softwareVersion);
             llmFields = buildFallbackLLMFields(
                     softwareName,
                     softwareVersion,

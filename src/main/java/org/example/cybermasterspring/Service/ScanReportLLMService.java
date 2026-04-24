@@ -3,6 +3,8 @@ package org.example.cybermasterspring.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.example.cybermasterspring.dto.ScanReportLLM;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +19,8 @@ import java.util.Map;
 
 @Service
 public class ScanReportLLMService {
+
+    private static final Logger log = LoggerFactory.getLogger(ScanReportLLMService.class);
 
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
@@ -40,6 +44,8 @@ public class ScanReportLLMService {
                                         int lowSeverity,
                                         String overallRiskLevel,
                                         List<String> notableIssues) {
+        log.info("OpenAI report generation started for software='{}' version='{}' risk='{}' totalVulnerabilities={}",
+                softwareName, softwareVersion, overallRiskLevel, totalVulnerabilities);
         String prompt = buildPrompt(
                 softwareName,
                 softwareVersion,
@@ -52,6 +58,7 @@ public class ScanReportLLMService {
         );
         Map<String, Object> requestBody = buildRequestBody(prompt);
         String rawResponse = executeRequest(requestBody);
+        log.info("OpenAI raw response received for software='{}' version='{}'", softwareName, softwareVersion);
         return parseResponse(rawResponse);
     }
 
@@ -73,6 +80,7 @@ public class ScanReportLLMService {
                 You are writing a vulnerability scan report.
                 Use only the facts provided below.
                 Do not invent CVEs, counts, affected versions, fixes, or technical details not present in the input.
+                Return raw JSON only. Do not wrap the response in markdown or code fences.
                 Return strict JSON only with these fields:
                 intro: string
                 riskImpact: array of strings
@@ -102,9 +110,6 @@ public class ScanReportLLMService {
     }
 
     private Map<String, Object> buildRequestBody(String prompt) {
-        Map<String, Object> textFormat = new LinkedHashMap<>();
-        textFormat.put("type", "json_object");
-
         Map<String, Object> inputText = new LinkedHashMap<>();
         inputText.put("type", "input_text");
         inputText.put("text", prompt);
@@ -116,7 +121,6 @@ public class ScanReportLLMService {
         Map<String, Object> requestBody = new LinkedHashMap<>();
         requestBody.put("model", openAiModel);
         requestBody.put("input", List.of(message));
-        requestBody.put("text", textFormat);
         return requestBody;
     }
 
@@ -131,6 +135,7 @@ public class ScanReportLLMService {
                 entity,
                 String.class
         );
+        log.debug("OpenAI HTTP status: {}", response.getStatusCode());
         return response.getBody();
     }
 
@@ -138,17 +143,28 @@ public class ScanReportLLMService {
         try {
             JsonNode root = objectMapper.readTree(rawResponse);
             String jsonText = extractOutputText(root);
-            JsonNode llmNode = objectMapper.readTree(jsonText);
+            JsonNode llmNode = objectMapper.readTree(cleanJsonText(jsonText));
 
             String intro = llmNode.path("intro").asText("");
             String executiveSummary = llmNode.path("executiveSummary").asText("");
             List<String> riskImpact = readStringList(llmNode.path("riskImpact"));
             List<String> recommendations = readStringList(llmNode.path("recommendations"));
 
+            log.info("OpenAI response parsed successfully");
             return new ScanReportLLM(intro, riskImpact, recommendations, executiveSummary);
         } catch (Exception e) {
+            log.warn("OpenAI response parsing failed", e);
             throw new IllegalStateException("Failed to parse OpenAI response", e);
         }
+    }
+
+    private String cleanJsonText(String jsonText) {
+        String cleaned = jsonText == null ? "" : jsonText.trim();
+        if (cleaned.startsWith("```")) {
+            cleaned = cleaned.replaceFirst("^```(?:json)?\\s*", "");
+            cleaned = cleaned.replaceFirst("\\s*```$", "");
+        }
+        return cleaned.trim();
     }
 
     private String extractOutputText(JsonNode root) {
