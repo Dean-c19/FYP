@@ -91,7 +91,6 @@ public class ScanReportService {
        String softwareVersion = parsedItems.isEmpty() ? "" : parsedItems.get(0).getVersion();
         ScanReportLLM llmFields;
         try {
-            log.info("Notable issues sent to OpenAI: {}", notableIssues);
             llmFields = scanReportLLMService.buildLLMFields(
                     softwareName,
                     softwareVersion,
@@ -107,7 +106,6 @@ public class ScanReportService {
             llmFields = null;
         }
         if (llmFields == null) {
-            log.info("Using local fallback wording for software='{}' version='{}'", softwareName, softwareVersion);
             llmFields = buildFallbackLLMFields(
                     softwareName,
                     softwareVersion,

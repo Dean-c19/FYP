@@ -3,8 +3,6 @@ package org.example.cybermasterspring.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.example.cybermasterspring.dto.ScanReportLLM;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,8 +17,6 @@ import java.util.Map;
 
 @Service
 public class ScanReportLLMService {
-
-    private static final Logger log = LoggerFactory.getLogger(ScanReportLLMService.class);
 
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
@@ -44,8 +40,6 @@ public class ScanReportLLMService {
                                         int lowSeverity,
                                         String overallRiskLevel,
                                         List<String> notableIssues) {
-        log.info("OpenAI report generation started for software='{}' version='{}' risk='{}' totalVulnerabilities={}",
-                softwareName, softwareVersion, overallRiskLevel, totalVulnerabilities);
         String prompt = buildPrompt(
                 softwareName,
                 softwareVersion,
@@ -58,7 +52,6 @@ public class ScanReportLLMService {
         );
         Map<String, Object> requestBody = buildRequestBody(prompt);
         String rawResponse = executeRequest(requestBody);
-        log.info("OpenAI raw response received for software='{}' version='{}'", softwareName, softwareVersion);
         return parseResponse(rawResponse);
     }
 
@@ -144,7 +137,6 @@ public class ScanReportLLMService {
                 entity,
                 String.class
         );
-        log.debug("OpenAI HTTP status: {}", response.getStatusCode());
         return response.getBody();
     }
 
@@ -159,10 +151,8 @@ public class ScanReportLLMService {
             List<String> riskImpact = readStringList(llmNode.path("riskImpact"));
             List<String> recommendations = readStringList(llmNode.path("recommendations"));
 
-            log.info("OpenAI response parsed successfully");
             return new ScanReportLLM(intro, riskImpact, recommendations, executiveSummary);
         } catch (Exception e) {
-            log.warn("OpenAI response parsing failed", e);
             throw new IllegalStateException("Failed to parse OpenAI response", e);
         }
     }
