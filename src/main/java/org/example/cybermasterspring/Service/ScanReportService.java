@@ -40,12 +40,14 @@ public class ScanReportService {
         int mediumSeverity = 0;
         int lowSeverity = 0;
         double maxCvss = -1.0;
+        boolean hasScoredFinding = false;
 
         for (CveFinding finding : findings) {
             Double cvss = finding.getCvss();
             if (cvss == null) {
                 continue;
             }
+            hasScoredFinding = true;
             if (cvss > maxCvss) {
                 maxCvss = cvss;
             }
@@ -63,6 +65,8 @@ public class ScanReportService {
             overallRiskLevel = "High";
         } else if (maxCvss >= 4.0) {
             overallRiskLevel = "Medium";
+        } else if (!findings.isEmpty() && !hasScoredFinding) {
+            overallRiskLevel = "Unknown";
         } else if (!findings.isEmpty()) {
             overallRiskLevel = "Low";
         } else {
@@ -161,6 +165,11 @@ public class ScanReportService {
             riskImpact = List.of(
                     "The identified issues appear lower risk but they still weaken the software security posture."
             );
+        } else if ("Unknown".equals(overallRiskLevel)) {
+            riskImpact = List.of(
+                    "Vulnerabilities were identified, but severity scoring was not available in the current results.",
+                    "The findings should still be reviewed because unscored issues can include meaningful security impact."
+            );
         } else {
             riskImpact = List.of(
                     "No direct vulnerability impact was identified from the current scan results."
@@ -172,6 +181,12 @@ public class ScanReportService {
             recommendations = List.of(
                     "No immediate remediation action is indicated by the current results.",
                     "Continue regular patching and repeat scans when software versions change."
+            );
+        } else if ("Unknown".equals(overallRiskLevel)) {
+            recommendations = List.of(
+                    "Review the identified findings manually because severity scoring was unavailable.",
+                    "Check vendor advisories and supported versions to assess remediation priority.",
+                    "Apply updates or compensating controls where the affected component is still in use."
             );
         } else {
             recommendations = List.of(
@@ -186,6 +201,10 @@ public class ScanReportService {
         if (totalVulnerabilities == 0) {
             executiveSummary = "This scan did not identify matching vulnerabilities for " + displayName
                     + " (" + displayVersion + ") in the current dataset.";
+        } else if ("Unknown".equals(overallRiskLevel)) {
+            executiveSummary = displayName + " (" + displayVersion + ") has " + totalVulnerabilities
+                    + " matched vulnerabilities, but severity scoring was unavailable in the current results."
+                    + " The findings should be reviewed manually to determine remediation priority.";
         } else {
             String topIssue = notableIssues.isEmpty() ? "the identified findings" : notableIssues.get(0);
             executiveSummary = displayName + " (" + displayVersion + ") currently presents a "
