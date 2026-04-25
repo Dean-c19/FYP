@@ -27,6 +27,7 @@ public class EmailAlertService {
         message.setTo(recipientEmail);
         message.setSubject(subject);
         message.setText(body);
+        mailSender.send(message);
     }
 
     private String buildHighRiskScanBody(String softwareName,

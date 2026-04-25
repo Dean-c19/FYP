@@ -13,7 +13,9 @@ import org.example.cybermasterspring.service.AbuseIpService;
 import org.example.cybermasterspring.service.UserService;
 import org.example.cybermasterspring.service.CveTrendService;
 import org.example.cybermasterspring.service.CveSearchService;
+import org.example.cybermasterspring.service.EmailAlertService;
 import org.example.cybermasterspring.service.ScanReportService;
+import org.example.cybermasterspring.repository.UserRepository;
 import org.example.cybermasterspring.service.VulnerabilityScanService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -36,7 +38,8 @@ public class AuthController {
     private final CveSearchService cveSearchService;
     private final ScanReportService scanReportService;
     private final VulnerabilityScanService vulnerabilityScanService;
-    
+    private final EmailAlertService emailAlertService;
+    private final UserRepository userRepository;
 
     public AuthController(UserService userService,
                           CyberNewsService cyberNewsService,
@@ -44,7 +47,9 @@ public class AuthController {
                           CveTrendService cveTrendService,
                           CveSearchService cveSearchService,
                           ScanReportService scanReportService,
-                          VulnerabilityScanService vulnerabilityScanService) {
+                          VulnerabilityScanService vulnerabilityScanService,
+                          EmailAlertService emailAlertService,
+                          UserRepository userRepository) {
         this.userService = userService;
         this.cyberNewsService = cyberNewsService;
         this.abuseIpService = abuseIpService;
@@ -52,6 +57,8 @@ public class AuthController {
         this.cveSearchService = cveSearchService;
         this.scanReportService = scanReportService;
         this.vulnerabilityScanService = vulnerabilityScanService;
+        this.emailAlertService = emailAlertService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/login")
@@ -119,6 +126,21 @@ public class AuthController {
         ScanReport report = scanReportService.buildReport(parsedItems, findings);
         if (authentication != null && authentication.isAuthenticated()) {
             vulnerabilityScanService.saveScan(authentication.getName(), softwareList, exactMatchOnly, findings, report);
+            if (report.getHighSeverity() > 0) {
+                userRepository.findByUsername(authentication.getName()).ifPresent(user -> {
+                    String softwareName = parsedItems.isEmpty() ? "" : parsedItems.get(0).getName();
+                    String softwareVersion = parsedItems.isEmpty() ? "" : parsedItems.get(0).getVersion();
+                    try {
+                        emailAlertService.sendHighRiskScanAlert(
+                                user.getEmail(),
+                                softwareName,
+                                softwareVersion,
+                                report
+                        );
+                    } catch (RuntimeException ignored) {
+                    }
+                });
+            }
         }
         model.addAttribute("submitted", true);
         model.addAttribute("softwareList", softwareList);
