@@ -151,6 +151,10 @@ public class CveSearchService {
         if (cve.hasNonNull("cvss")) {
             return cve.get("cvss").asDouble();
         }
+        Double cnaCvss = extractCvssFromMetrics(cve.path("containers").path("cna").path("metrics"));
+        if (cnaCvss != null) {
+            return cnaCvss;
+        }
         JsonNode cvssMetricV31 = cve.path("metrics").path("cvssMetricV31");
         if (cvssMetricV31.isArray() && cvssMetricV31.size() > 0) {
             JsonNode baseScore = cvssMetricV31.get(0).path("cvssData").path("baseScore");
@@ -161,13 +165,35 @@ public class CveSearchService {
         JsonNode adp = cve.path("containers").path("adp");
         if (adp.isArray()) {
             for (JsonNode adpNode : adp) {
-                JsonNode metrics = adpNode.path("metrics");
-                if (metrics.isArray() && metrics.size() > 0) {
-                    JsonNode cvss = metrics.get(0).path("cvssV3_1").path("baseScore");
-                    if (cvss.isNumber()) {
-                        return cvss.asDouble();
-                    }
+                Double adpCvss = extractCvssFromMetrics(adpNode.path("metrics"));
+                if (adpCvss != null) {
+                    return adpCvss;
                 }
+            }
+        }
+        return null;
+    }
+
+    private Double extractCvssFromMetrics(JsonNode metrics) {
+        if (!metrics.isArray()) {
+            return null;
+        }
+        for (JsonNode metric : metrics) {
+            JsonNode cvssV40 = metric.path("cvssV4_0").path("baseScore");
+            if (cvssV40.isNumber()) {
+                return cvssV40.asDouble();
+            }
+            JsonNode cvssV31 = metric.path("cvssV3_1").path("baseScore");
+            if (cvssV31.isNumber()) {
+                return cvssV31.asDouble();
+            }
+            JsonNode cvssV30 = metric.path("cvssV3_0").path("baseScore");
+            if (cvssV30.isNumber()) {
+                return cvssV30.asDouble();
+            }
+            JsonNode cvssV2 = metric.path("cvssV2_0").path("baseScore");
+            if (cvssV2.isNumber()) {
+                return cvssV2.asDouble();
             }
         }
         return null;
