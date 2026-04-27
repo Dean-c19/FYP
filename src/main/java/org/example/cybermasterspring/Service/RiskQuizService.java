@@ -2,6 +2,7 @@ package org.example.cybermasterspring.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.cybermasterspring.dto.RiskQuizCondition;
 import org.example.cybermasterspring.dto.RiskQuizOption;
 import org.example.cybermasterspring.dto.RiskQuizQuestion;
 import org.example.cybermasterspring.dto.RiskQuizResult;
@@ -60,6 +61,12 @@ public class RiskQuizService {
         );
     }
 
+    public List<RiskQuizQuestion> getVisibleQuestions(Map<String, String> answers) {
+        return getQuestions().stream()
+                .filter(question -> shouldShowQuestion(question, answers))
+                .toList();
+    }
+
     private RiskQuizOption findSelectedOption(RiskQuizQuestion question, String selectedValue) {
         if (question.getOptions() == null) {
             return null;
@@ -70,6 +77,19 @@ public class RiskQuizService {
             }
         }
         return null;
+    }
+
+    private boolean shouldShowQuestion(RiskQuizQuestion question, Map<String, String> answers) {
+        if (question.getShowIf() == null || question.getShowIf().isEmpty()) {
+            return true;
+        }
+        for (RiskQuizCondition condition : question.getShowIf()) {
+            String actualAnswer = answers.get(condition.getQuestionId());
+            if (actualAnswer == null || !actualAnswer.equals(condition.getEquals())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private String determineRiskLevel(int totalScore) {
