@@ -6,6 +6,8 @@ import org.example.cybermasterspring.dto.CveTrendItem;
 import org.example.cybermasterspring.dto.CveDetail;
 import org.example.cybermasterspring.dto.SoftwareItem;
 import org.example.cybermasterspring.dto.CveFinding;
+import org.example.cybermasterspring.dto.RiskQuizQuestion;
+import org.example.cybermasterspring.dto.RiskQuizResult;
 import org.example.cybermasterspring.dto.ScanReport;
 import org.example.cybermasterspring.dto.ScanHistoryItem;
 import org.example.cybermasterspring.service.CyberNewsService;
@@ -14,6 +16,7 @@ import org.example.cybermasterspring.service.UserService;
 import org.example.cybermasterspring.service.CveTrendService;
 import org.example.cybermasterspring.service.CveSearchService;
 import org.example.cybermasterspring.service.EmailAlertService;
+import org.example.cybermasterspring.service.RiskQuizService;
 import org.example.cybermasterspring.service.ScanReportService;
 import org.example.cybermasterspring.repository.UserRepository;
 import org.example.cybermasterspring.service.VulnerabilityScanService;
@@ -26,7 +29,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class AuthController {
@@ -40,6 +48,7 @@ public class AuthController {
     private final VulnerabilityScanService vulnerabilityScanService;
     private final EmailAlertService emailAlertService;
     private final UserRepository userRepository;
+    private final RiskQuizService riskQuizService;
 
     public AuthController(UserService userService,
                           CyberNewsService cyberNewsService,
@@ -49,7 +58,8 @@ public class AuthController {
                           ScanReportService scanReportService,
                           VulnerabilityScanService vulnerabilityScanService,
                           EmailAlertService emailAlertService,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          RiskQuizService riskQuizService) {
         this.userService = userService;
         this.cyberNewsService = cyberNewsService;
         this.abuseIpService = abuseIpService;
@@ -59,6 +69,7 @@ public class AuthController {
         this.vulnerabilityScanService = vulnerabilityScanService;
         this.emailAlertService = emailAlertService;
         this.userRepository = userRepository;
+        this.riskQuizService = riskQuizService;
     }
 
     @GetMapping("/login")
@@ -114,10 +125,31 @@ public class AuthController {
         return "software-vulnerability-scanner";
     }
 
+    @GetMapping("/risk-quiz")
+    public String riskQuiz(Model model) {
+        Map<String, String> answers = new LinkedHashMap<>();
+        List<RiskQuizQuestion> questions = riskQuizService.getVisibleQuestions(answers);
+        model.addAttribute("quizQuestions", questions);
+        model.addAttribute("quizAnswers", answers);
+        return "risk-quiz";
+    }
+
+    @PostMapping("/risk-quiz/submit")
+    public String submitRiskQuiz(@RequestParam Map<String, String> submittedAnswers, Model model) {
+        Map<String, String> answers = new LinkedHashMap<>(submittedAnswers);
+        answers.remove("_csrf");
+        List<RiskQuizQuestion> questions = riskQuizService.getVisibleQuestions(answers);
+        RiskQuizResult result = riskQuizService.calculateResult(answers);
+        model.addAttribute("quizQuestions", questions);
+        model.addAttribute("quizAnswers", answers);
+        model.addAttribute("quizResult", result);
+        return "risk-quiz-results";
+    }
+
     @PostMapping("/software-vulnerability-scanner")
     public String submitSoftwareVulnerabilityScanner(
-            @org.springframework.web.bind.annotation.RequestParam("softwareList") String softwareList,
-            @org.springframework.web.bind.annotation.RequestParam(value = "exactOnly", required = false) String exactOnly,
+            @RequestParam("softwareList") String softwareList,
+            @RequestParam(value = "exactOnly", required = false) String exactOnly,
             Authentication authentication,
             Model model) {
         java.util.List<SoftwareItem> parsedItems = parseSoftwareList(softwareList);
