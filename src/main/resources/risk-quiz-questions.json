@@ -1,0 +1,350 @@
+[
+  {
+    "id": "company_size",
+    "text": "How many people use your business systems?",
+    "category": "User Awareness",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "1_10",
+        "label": "1 to 10",
+        "score": 1,
+        "tags": []
+      },
+      {
+        "value": "11_50",
+        "label": "11 to 50",
+        "score": 2,
+        "tags": []
+      },
+      {
+        "value": "51_250",
+        "label": "51 to 250",
+        "score": 3,
+        "tags": []
+      },
+      {
+        "value": "251_plus",
+        "label": "More than 250",
+        "score": 4,
+        "tags": []
+      }
+    ],
+    "showIf": []
+  },
+  {
+    "id": "remote_work",
+    "text": "Do employees access company systems remotely?",
+    "category": "Network Exposure",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "yes",
+        "label": "Yes",
+        "score": 4,
+        "tags": ["remote-yes"]
+      },
+      {
+        "value": "no",
+        "label": "No",
+        "score": 1,
+        "tags": ["remote-no"]
+      }
+    ],
+    "showIf": []
+  },
+  {
+    "id": "mfa_enabled",
+    "text": "Do you require multi-factor authentication for user accounts?",
+    "category": "Access Control",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "all_accounts",
+        "label": "Yes, for all accounts",
+        "score": 0,
+        "tags": ["mfa-strong"]
+      },
+      {
+        "value": "admin_only",
+        "label": "Only for admin accounts",
+        "score": 3,
+        "tags": ["mfa-partial"]
+      },
+      {
+        "value": "no",
+        "label": "No",
+        "score": 7,
+        "tags": ["mfa-missing"]
+      }
+    ],
+    "showIf": []
+  },
+  {
+    "id": "patch_frequency",
+    "text": "How often do you apply software and security updates?",
+    "category": "Patch Management",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "within_7_days",
+        "label": "Within 7 days",
+        "score": 0,
+        "tags": ["patch-strong"]
+      },
+      {
+        "value": "monthly",
+        "label": "Monthly",
+        "score": 3,
+        "tags": ["patch-medium"]
+      },
+      {
+        "value": "irregular",
+        "label": "Irregularly or only when needed",
+        "score": 7,
+        "tags": ["patch-weak"]
+      }
+    ],
+    "showIf": []
+  },
+  {
+    "id": "backups_tested",
+    "text": "How often are your backups tested by restoring data?",
+    "category": "Backup & Recovery",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "regularly",
+        "label": "Regularly tested",
+        "score": 0,
+        "tags": ["backup-strong"]
+      },
+      {
+        "value": "sometimes",
+        "label": "Sometimes tested",
+        "score": 3,
+        "tags": ["backup-partial"]
+      },
+      {
+        "value": "never",
+        "label": "Never or not sure",
+        "score": 7,
+        "tags": ["backup-weak"]
+      }
+    ],
+    "showIf": []
+  },
+  {
+    "id": "sensitive_data",
+    "text": "Do you store sensitive customer, employee, or financial data?",
+    "category": "Data Protection",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "yes",
+        "label": "Yes",
+        "score": 4,
+        "tags": ["data-sensitive"]
+      },
+      {
+        "value": "no",
+        "label": "No",
+        "score": 1,
+        "tags": ["data-non-sensitive"]
+      }
+    ],
+    "showIf": []
+  },
+  {
+    "id": "vpn_required",
+    "text": "Is a VPN required for remote access to internal systems?",
+    "category": "Network Exposure",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "yes",
+        "label": "Yes",
+        "score": 0,
+        "tags": ["vpn-yes"]
+      },
+      {
+        "value": "sometimes",
+        "label": "Only for some systems",
+        "score": 3,
+        "tags": ["vpn-partial"]
+      },
+      {
+        "value": "no",
+        "label": "No",
+        "score": 7,
+        "tags": ["vpn-no"]
+      }
+    ],
+    "showIf": [
+      {
+        "questionId": "remote_work",
+        "equals": "yes"
+      }
+    ]
+  },
+  {
+    "id": "managed_devices_only",
+    "text": "Can staff access company systems only from managed devices?",
+    "category": "Endpoint Security",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "yes",
+        "label": "Yes",
+        "score": 0,
+        "tags": ["managed-only"]
+      },
+      {
+        "value": "partly",
+        "label": "Partly",
+        "score": 3,
+        "tags": ["managed-partial"]
+      },
+      {
+        "value": "no",
+        "label": "No",
+        "score": 7,
+        "tags": ["managed-no"]
+      }
+    ],
+    "showIf": [
+      {
+        "questionId": "remote_work",
+        "equals": "yes"
+      }
+    ]
+  },
+  {
+    "id": "data_encrypted",
+    "text": "Is sensitive business data encrypted at rest and in transit?",
+    "category": "Data Protection",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "yes",
+        "label": "Yes",
+        "score": 0,
+        "tags": ["encryption-strong"]
+      },
+      {
+        "value": "partial",
+        "label": "Partially",
+        "score": 3,
+        "tags": ["encryption-partial"]
+      },
+      {
+        "value": "no",
+        "label": "No",
+        "score": 7,
+        "tags": ["encryption-no"]
+      }
+    ],
+    "showIf": [
+      {
+        "questionId": "sensitive_data",
+        "equals": "yes"
+      }
+    ]
+  },
+  {
+    "id": "restricted_access",
+    "text": "Is access to sensitive data restricted to only the staff who need it?",
+    "category": "Access Control",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "yes",
+        "label": "Yes",
+        "score": 0,
+        "tags": ["least-privilege-yes"]
+      },
+      {
+        "value": "partial",
+        "label": "Partially",
+        "score": 3,
+        "tags": ["least-privilege-partial"]
+      },
+      {
+        "value": "no",
+        "label": "No",
+        "score": 7,
+        "tags": ["least-privilege-no"]
+      }
+    ],
+    "showIf": [
+      {
+        "questionId": "sensitive_data",
+        "equals": "yes"
+      }
+    ]
+  },
+  {
+    "id": "admin_account_protection",
+    "text": "How are administrator accounts additionally protected?",
+    "category": "Access Control",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "strong_controls",
+        "label": "Separate admin accounts with extra protections",
+        "score": 1,
+        "tags": ["admin-strong"]
+      },
+      {
+        "value": "some_controls",
+        "label": "Some extra controls are in place",
+        "score": 4,
+        "tags": ["admin-partial"]
+      },
+      {
+        "value": "minimal_controls",
+        "label": "Few or no extra controls",
+        "score": 8,
+        "tags": ["admin-weak"]
+      }
+    ],
+    "showIf": [
+      {
+        "questionId": "mfa_enabled",
+        "equals": "no"
+      }
+    ]
+  },
+  {
+    "id": "offline_backups",
+    "text": "Do you keep offline or immutable backups for critical systems?",
+    "category": "Backup & Recovery",
+    "type": "single_choice",
+    "options": [
+      {
+        "value": "yes",
+        "label": "Yes",
+        "score": 0,
+        "tags": ["offline-backup-yes"]
+      },
+      {
+        "value": "some",
+        "label": "For some systems only",
+        "score": 3,
+        "tags": ["offline-backup-partial"]
+      },
+      {
+        "value": "no",
+        "label": "No",
+        "score": 7,
+        "tags": ["offline-backup-no"]
+      }
+    ],
+    "showIf": [
+      {
+        "questionId": "backups_tested",
+        "equals": "never"
+      }
+    ]
+  }
+]
