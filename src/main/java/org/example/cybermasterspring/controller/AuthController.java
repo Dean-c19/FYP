@@ -135,11 +135,16 @@ public class AuthController {
     }
 
     @PostMapping("/risk-quiz/submit")
-    public String submitRiskQuiz(@RequestParam Map<String, String> submittedAnswers, Model model) {
+    public String submitRiskQuiz(@RequestParam Map<String, String> submittedAnswers,
+                                 Authentication authentication,
+                                 Model model) {
         Map<String, String> answers = new LinkedHashMap<>(submittedAnswers);
         answers.remove("_csrf");
         List<RiskQuizQuestion> questions = riskQuizService.getVisibleQuestions(answers);
         RiskQuizResult result = riskQuizService.calculateResult(answers);
+        if (authentication != null && authentication.isAuthenticated()) {
+            userRepository.findByUsername(authentication.getName()).ifPresent(user -> riskQuizService.saveResult(user, result));
+        }
         model.addAttribute("quizQuestions", questions);
         model.addAttribute("quizAnswers", answers);
         model.addAttribute("quizResult", result);

@@ -6,10 +6,14 @@ import org.example.cybermasterspring.dto.RiskQuizCondition;
 import org.example.cybermasterspring.dto.RiskQuizOption;
 import org.example.cybermasterspring.dto.RiskQuizQuestion;
 import org.example.cybermasterspring.dto.RiskQuizResult;
+import org.example.cybermasterspring.model.RiskQuiz;
+import org.example.cybermasterspring.model.User;
+import org.example.cybermasterspring.repository.RiskQuizRepository;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +22,12 @@ import java.util.Map;
 public class RiskQuizService {
 
     private final ObjectMapper objectMapper;
+    private final RiskQuizRepository riskQuizRepository;
 
-    public RiskQuizService(ObjectMapper objectMapper) {
+    public RiskQuizService(ObjectMapper objectMapper,
+                           RiskQuizRepository riskQuizRepository) {
         this.objectMapper = objectMapper;
+        this.riskQuizRepository = riskQuizRepository;
     }
 
     public List<RiskQuizQuestion> getQuestions() {
@@ -65,6 +72,16 @@ public class RiskQuizService {
         return getQuestions().stream()
                 .filter(question -> shouldShowQuestion(question, answers))
                 .toList();
+    }
+
+    public void saveResult(User user, RiskQuizResult result) {
+        RiskQuiz riskQuiz = new RiskQuiz();
+        riskQuiz.setUser(user);
+        riskQuiz.setCompletedAt(LocalDateTime.now());
+        riskQuiz.setTotalScore(result.getTotalScore());
+        riskQuiz.setRiskLevel(result.getRiskLevel());
+        riskQuiz.setQuestionsAnswered(result.getAnswers().size());
+        riskQuizRepository.save(riskQuiz);
     }
 
     private RiskQuizOption findSelectedOption(RiskQuizQuestion question, String selectedValue) {
