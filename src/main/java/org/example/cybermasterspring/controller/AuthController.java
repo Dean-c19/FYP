@@ -3,7 +3,6 @@ package org.example.cybermasterspring.controller;
 import org.example.cybermasterspring.dto.UserRegistrationDto;
 import org.example.cybermasterspring.dto.ThreatEvent;
 import org.example.cybermasterspring.dto.CveTrendItem;
-import org.example.cybermasterspring.dto.CveDetail;
 import org.example.cybermasterspring.dto.SoftwareItem;
 import org.example.cybermasterspring.dto.CveFinding;
 import org.example.cybermasterspring.dto.RiskQuizQuestion;
@@ -262,12 +261,6 @@ public class AuthController {
             return null;
         }
         return riskQuizService.getLatestSummary(authentication.getName());
-    }
-
-    @GetMapping("/api/cve/details")
-    @ResponseBody
-    public CveDetail cveDetails(@org.springframework.web.bind.annotation.RequestParam("cve") String cve) {
-        return cveTrendService.getCveDetail(cve);
     }
 
 }
