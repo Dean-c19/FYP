@@ -145,9 +145,11 @@ public class AuthController {
         if (authentication != null && authentication.isAuthenticated()) {
             userRepository.findByUsername(authentication.getName()).ifPresent(user -> riskQuizService.saveResult(user, result));
         }
+        List<String> recommendations = riskQuizService.buildRecommendations(result.getCategoryScores());
         model.addAttribute("quizQuestions", questions);
         model.addAttribute("quizAnswers", answers);
         model.addAttribute("quizResult", result);
+        model.addAttribute("quizRecommendations", recommendations);
         return "risk-quiz-results";
     }
 

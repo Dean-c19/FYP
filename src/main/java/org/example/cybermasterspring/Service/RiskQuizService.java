@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +86,26 @@ public class RiskQuizService {
         riskQuizRepository.save(riskQuiz);
     }
 
+    public List<String> buildRecommendations(Map<String, Integer> categoryScores) {
+        if (categoryScores == null || categoryScores.isEmpty()) {
+            return List.of(
+                    "Continue reviewing your cyber security controls regularly to keep risk low."
+            );
+        }
+
+        List<String> recommendations = new ArrayList<>();
+
+        categoryScores.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()))
+                .limit(3)
+                .forEach(entry -> recommendations.add(getRecommendationForCategory(entry.getKey())));
+
+        return recommendations.stream()
+                .filter(text -> text != null && !text.isBlank())
+                .distinct()
+                .toList();
+    }
+
     private RiskQuizOption findSelectedOption(RiskQuizQuestion question, String selectedValue) {
         if (question.getOptions() == null) {
             return null;
@@ -107,6 +129,19 @@ public class RiskQuizService {
             }
         }
         return true;
+    }
+
+    private String getRecommendationForCategory(String category) {
+        return switch (category) {
+            case "Access Control" -> "Strengthen access controls by enabling multi-factor authentication for all accounts and tightening administrator protections.";
+            case "Patch Management" -> "Improve patch management by applying security updates on a shorter fixed cycle and removing unsupported software.";
+            case "Data Protection" -> "Protect sensitive business data with strong encryption and stricter access restrictions for the people who need it.";
+            case "Endpoint Security" -> "Reduce endpoint risk by limiting access to managed devices and enforcing stronger device security controls.";
+            case "Backup & Recovery" -> "Improve resilience by testing backups regularly and maintaining offline or immutable backup copies.";
+            case "Network Exposure" -> "Reduce network exposure by requiring secure remote access methods such as VPNs and reviewing externally accessible services.";
+            case "User Awareness" -> "Support safer day-to-day behaviour with regular cyber security awareness training and clear internal security practices.";
+            default -> "Review the highest-scoring risk areas and prioritise practical improvements to reduce business cyber exposure.";
+        };
     }
 
     private String determineRiskLevel(int totalScore) {
