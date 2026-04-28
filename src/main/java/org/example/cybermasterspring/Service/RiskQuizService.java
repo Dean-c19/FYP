@@ -6,6 +6,7 @@ import org.example.cybermasterspring.dto.RiskQuizCondition;
 import org.example.cybermasterspring.dto.RiskQuizOption;
 import org.example.cybermasterspring.dto.RiskQuizQuestion;
 import org.example.cybermasterspring.dto.RiskQuizResult;
+import org.example.cybermasterspring.dto.RiskQuizSummary;
 import org.example.cybermasterspring.model.RiskQuiz;
 import org.example.cybermasterspring.model.User;
 import org.example.cybermasterspring.repository.RiskQuizRepository;
@@ -76,13 +77,25 @@ public class RiskQuizService {
                 .toList();
     }
 
-    public void saveResult(User user, RiskQuizResult result) {
+    public RiskQuizSummary getLatestSummary(String username) {
+        return riskQuizRepository.findTopByUserUsernameOrderByCompletedAtDesc(username)
+                .map(riskQuiz -> new RiskQuizSummary(
+                        riskQuiz.getTotalScore(),
+                        riskQuiz.getRiskLevel(),
+                        riskQuiz.getCompletedAt(),
+                        fromJson(riskQuiz.getRecommendationsJson())
+                ))
+                .orElse(null);
+    }
+
+    public void saveResult(User user, RiskQuizResult result, List<String> recommendations) {
         RiskQuiz riskQuiz = new RiskQuiz();
         riskQuiz.setUser(user);
         riskQuiz.setCompletedAt(LocalDateTime.now());
         riskQuiz.setTotalScore(result.getTotalScore());
         riskQuiz.setRiskLevel(result.getRiskLevel());
         riskQuiz.setQuestionsAnswered(result.getAnswers().size());
+        riskQuiz.setRecommendationsJson(toJson(recommendations));
         riskQuizRepository.save(riskQuiz);
     }
 
@@ -142,6 +155,26 @@ public class RiskQuizService {
             case "User Awareness" -> "Support safer day-to-day behaviour with regular cyber security awareness training and clear internal security practices.";
             default -> "Review the highest-scoring risk areas and prioritise practical improvements to reduce business cyber exposure.";
         };
+    }
+
+    private String toJson(List<String> recommendations) {
+        try {
+            return objectMapper.writeValueAsString(recommendations == null ? List.of() : recommendations);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to serialize quiz recommendations", e);
+        }
+    }
+
+    private List<String> fromJson(String recommendationsJson) {
+        try {
+            return objectMapper.readValue(
+                    recommendationsJson == null || recommendationsJson.isBlank() ? "[]" : recommendationsJson,
+                    new TypeReference<List<String>>() {
+                    }
+            );
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to deserialize quiz recommendations", e);
+        }
     }
 
     private String determineRiskLevel(int totalScore) {

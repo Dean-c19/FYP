@@ -36,6 +36,9 @@ public class RiskQuiz {
     @Column(name = "questions_answered", nullable = false)
     private int questionsAnswered;
 
+    @Column(name = "recommendations_json", columnDefinition = "TEXT", nullable = false)
+    private String recommendationsJson;
+
     public Long getId() {
         return id;
     }
@@ -78,5 +81,13 @@ public class RiskQuiz {
 
     public void setQuestionsAnswered(int questionsAnswered) {
         this.questionsAnswered = questionsAnswered;
+    }
+
+    public String getRecommendationsJson() {
+        return recommendationsJson;
+    }
+
+    public void setRecommendationsJson(String recommendationsJson) {
+        this.recommendationsJson = recommendationsJson;
     }
 }

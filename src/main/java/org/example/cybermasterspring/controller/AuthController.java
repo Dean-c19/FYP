@@ -8,6 +8,7 @@ import org.example.cybermasterspring.dto.SoftwareItem;
 import org.example.cybermasterspring.dto.CveFinding;
 import org.example.cybermasterspring.dto.RiskQuizQuestion;
 import org.example.cybermasterspring.dto.RiskQuizResult;
+import org.example.cybermasterspring.dto.RiskQuizSummary;
 import org.example.cybermasterspring.dto.ScanReport;
 import org.example.cybermasterspring.dto.ScanHistoryItem;
 import org.example.cybermasterspring.service.CyberNewsService;
@@ -142,10 +143,10 @@ public class AuthController {
         answers.remove("_csrf");
         List<RiskQuizQuestion> questions = riskQuizService.getVisibleQuestions(answers);
         RiskQuizResult result = riskQuizService.calculateResult(answers);
-        if (authentication != null && authentication.isAuthenticated()) {
-            userRepository.findByUsername(authentication.getName()).ifPresent(user -> riskQuizService.saveResult(user, result));
-        }
         List<String> recommendations = riskQuizService.buildRecommendations(result.getCategoryScores());
+        if (authentication != null && authentication.isAuthenticated()) {
+            userRepository.findByUsername(authentication.getName()).ifPresent(user -> riskQuizService.saveResult(user, result, recommendations));
+        }
         model.addAttribute("quizQuestions", questions);
         model.addAttribute("quizAnswers", answers);
         model.addAttribute("quizResult", result);
@@ -252,6 +253,15 @@ public class AuthController {
             return java.util.List.of();
         }
         return vulnerabilityScanService.getUserScanHistory(authentication.getName());
+    }
+
+    @GetMapping("/api/risk-quiz/latest")
+    @ResponseBody
+    public RiskQuizSummary latestRiskQuiz(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        return riskQuizService.getLatestSummary(authentication.getName());
     }
 
     @GetMapping("/api/cve/details")
