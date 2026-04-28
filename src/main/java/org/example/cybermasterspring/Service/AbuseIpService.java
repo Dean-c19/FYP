@@ -111,7 +111,7 @@ public class AbuseIpService {
             String json = Files.readString(file.toPath());
             ThreatEvent[] events = objectMapper.readValue(json, ThreatEvent[].class);
             cached = List.of(events);
-            lastFetchedAt = Instant.now();
+            lastFetchedAt = Files.getLastModifiedTime(file.toPath()).toInstant();
         } catch (IOException ignored) {
         }
     }

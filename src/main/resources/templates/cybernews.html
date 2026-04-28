@@ -83,15 +83,11 @@
         <div class="col-12 col-lg-5 mt-4 mt-lg-5">
             <div class="p-4 bg-secondary rounded">
                 <h2 class="h4">Recently Published CVEs</h2>
-                <p class="text-light small mb-3">From CVEInfo.</p>
+                <p class="text-light small mb-3">From CVEInfo. Click a CVE to view more info.</p>
 
                 <ul class="list-unstyled" id="cve-trends-list">
                     <li class="text-light small">Loading...</li>
                 </ul>
-
-                <div id="cve-detail-panel" class="mt-3 p-3 bg-dark rounded">
-                    <div class="text-secondary small">Click for more info.</div>
-                </div>
             </div>
         </div>
     </div>
@@ -112,10 +108,10 @@
                 const li = document.createElement("li");
                 li.className = "mb-2";
                 li.innerHTML = `
-                    <button class="btn btn-link text-light small text-decoration-none p-0" type="button"
-                            data-cve-id="${item.cveId}">
+                    <a class="btn btn-link text-light small text-decoration-none p-0" target="_blank" rel="noopener noreferrer"
+                       href="${item.link || '#'}">
                         ${item.cveId}
-                    </button>
+                    </a>
                     <div class="text-secondary small">${item.title}</div>
                 `;
                 list.appendChild(li);
@@ -125,25 +121,6 @@
             list.innerHTML = '<li class="text-light small">Failed to load data.</li>';
         }
     }
-
-    const detailPanel = document.getElementById("cve-detail-panel");
-    document.getElementById("cve-trends-list").addEventListener("click", async (e) => {
-        const btn = e.target.closest("button[data-cve-id]");
-        if (!btn) return;
-        const cveId = btn.getAttribute("data-cve-id");
-        detailPanel.innerHTML = '<div class="text-secondary small">Loading details...</div>';
-        try {
-            const res = await fetch(`/api/cve/details?cve=${encodeURIComponent(cveId)}`);
-            const data = await res.json();
-            detailPanel.innerHTML = `
-                <div class="text-light fw-semibold mb-2">${data.cveId || cveId}</div>
-                ${data.baseScore ? `<div class="text-warning small mb-2">CVSS Base Score: ${data.baseScore}</div>` : ""}
-                <div class="text-light small">${data.description || "No description available."}</div>
-            `;
-        } catch (err) {
-            detailPanel.innerHTML = '<div class="text-secondary small">Failed to load details.</div>';
-        }
-    });
 
     loadCveTrends();
     setInterval(loadCveTrends, 21600000);
