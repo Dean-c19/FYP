@@ -128,7 +128,7 @@ public class AuthController {
     @GetMapping("/risk-quiz")
     public String riskQuiz(Model model) {
         Map<String, String> answers = new LinkedHashMap<>();
-        List<RiskQuizQuestion> questions = riskQuizService.getVisibleQuestions(answers);
+        List<RiskQuizQuestion> questions = riskQuizService.getQuestions();
         model.addAttribute("quizQuestions", questions);
         model.addAttribute("quizAnswers", answers);
         return "risk-quiz";
