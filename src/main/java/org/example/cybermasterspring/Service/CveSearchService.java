@@ -237,11 +237,18 @@ public class CveSearchService {
                 if (versions.isArray()) {
                     for (JsonNode ver : versions) {
                         String verValue = ver.path("version").asText("");
-                        if (verValue.contains(v)) {
+                        if (verValue.equalsIgnoreCase(v) || verValue.contains(v)) {
                             return true;
                         }
                         String lessThan = ver.path("lessThan").asText("");
-                        if (lessThan.contains(v)) {
+                        if (lessThan.equalsIgnoreCase(v) || lessThan.contains(v)) {
+                            return true;
+                        }
+                        String lessThanOrEqual = ver.path("lessThanOrEqual").asText("");
+                        if (lessThanOrEqual.equalsIgnoreCase(v) || lessThanOrEqual.contains(v)) {
+                            return true;
+                        }
+                        if (isVersionInRange(v, verValue, lessThan, lessThanOrEqual)) {
                             return true;
                         }
                     }
@@ -250,6 +257,69 @@ public class CveSearchService {
         }
         String summary = extractSummary(cve);
         return summary.contains(v);
+    }
+
+    private boolean isVersionInRange(String targetVersion,
+                                     String lowerBound,
+                                     String upperExclusive,
+                                     String upperInclusive) {
+        Integer lowerComparison = compareNumericVersions(targetVersion, lowerBound);
+        if (lowerComparison == null) {
+            return false;
+        }
+
+        if (upperExclusive != null && !upperExclusive.isBlank()) {
+            Integer upperComparison = compareNumericVersions(targetVersion, upperExclusive);
+            if (upperComparison == null) {
+                return false;
+            }
+            return lowerComparison >= 0 && upperComparison < 0;
+        }
+
+        if (upperInclusive != null && !upperInclusive.isBlank()) {
+            Integer upperComparison = compareNumericVersions(targetVersion, upperInclusive);
+            if (upperComparison == null) {
+                return false;
+            }
+            return lowerComparison >= 0 && upperComparison <= 0;
+        }
+
+        return false;
+    }
+
+    private Integer compareNumericVersions(String left, String right) {
+        if (left == null || right == null || left.isBlank() || right.isBlank()) {
+            return null;
+        }
+
+        String[] leftParts = left.split("\\.");
+        String[] rightParts = right.split("\\.");
+        int maxLength = Math.max(leftParts.length, rightParts.length);
+
+        for (int i = 0; i < maxLength; i++) {
+            Integer leftPart = parseVersionPart(i < leftParts.length ? leftParts[i] : "0");
+            Integer rightPart = parseVersionPart(i < rightParts.length ? rightParts[i] : "0");
+            if (leftPart == null || rightPart == null) {
+                return null;
+            }
+            int comparison = Integer.compare(leftPart, rightPart);
+            if (comparison != 0) {
+                return comparison;
+            }
+        }
+
+        return 0;
+    }
+
+    private Integer parseVersionPart(String value) {
+        if (value == null || value.isBlank() || !value.matches("\\d+")) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private String[] deriveVendorProduct(String name) {

@@ -3,6 +3,7 @@ package org.example.cybermasterspring.service;
 import org.example.cybermasterspring.dto.UserRegistrationDto;
 import org.example.cybermasterspring.model.User;
 import org.example.cybermasterspring.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,11 +13,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final String adminRegistrationPassword;
 
     public UserServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           @Value("${app.admin.registration-password:}") String adminRegistrationPassword) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.adminRegistrationPassword = adminRegistrationPassword;
     }
 
     @Override
@@ -40,7 +44,7 @@ public class UserServiceImpl implements UserService {
             if (dto.getAdminPassword() == null || dto.getAdminPassword().isBlank()) {
                 throw new RuntimeException("Admin password is required");
             }
-            if (!"CyberAdmin01Cyber".equals(dto.getAdminPassword())) {
+            if (!adminRegistrationPassword.equals(dto.getAdminPassword())) {
                 throw new RuntimeException("Invalid admin password");
             }
         }

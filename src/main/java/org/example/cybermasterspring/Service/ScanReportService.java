@@ -61,7 +61,7 @@ public class ScanReportService {
         }
 
         String overallRiskLevel;
-        if (maxCvss >= 8.0) {
+        if (maxCvss >= 7.0) {
             overallRiskLevel = "High";
         } else if (maxCvss >= 4.0) {
             overallRiskLevel = "Medium";
