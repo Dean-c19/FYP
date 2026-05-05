@@ -21,9 +21,11 @@ public class CveSearchService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // run the full scan for the submitted software and then return the mathcing cves
     public List<CveFinding> scan(List<SoftwareItem> items, boolean exactOnly) {
         List<CveFinding> findings = new ArrayList<>();
         for (SoftwareItem item : items) {
+            // the users input is split into vendor/product format to be able to be read by the api
             String[] vendorProduct = deriveVendorProduct(item.getName());
             String vendor = vendorProduct[0];
             String product = vendorProduct[1];
@@ -41,6 +43,7 @@ public class CveSearchService {
                 if (cve == null) {
                     continue;
                 }
+                // if the exact match box is checked then only show the affected CVEs from that exact version
                 if (exactOnly && !matchesVersion(cve, item.getVersion())) {
                     continue;
                 }
@@ -55,6 +58,7 @@ public class CveSearchService {
         return findings;
     }
 
+    // send the actual request tp circl it then returns the raw json respone
     private JsonNode fetchResults(String vendor, String product) {
         try {
             String url = UriComponentsBuilder.fromHttpUrl(BASE_URL)
@@ -70,10 +74,12 @@ public class CveSearchService {
         }
     }
 
+    // pull the cve results array out of the api response
     private JsonNode extractResults(JsonNode root) {
         if (root == null) {
             return null;
         }
+        // the api could return the results from the scans in different shapes so i normalise them int one array before scanning
         JsonNode results = root.path("results");
         if (results.isObject()) {
             JsonNode nvd = results.get("nvd");
@@ -94,6 +100,7 @@ public class CveSearchService {
         return null;
     }
 
+    // here extracts one cve object from a single result array
     private JsonNode extractCveNode(JsonNode entry) {
         if (entry == null) {
             return null;
@@ -107,6 +114,7 @@ public class CveSearchService {
         return null;
     }
 
+    // reading the cve id from the best field that is available to me in the returned data
     private String extractCveId(JsonNode cve, JsonNode entry) {
         String id = cve.path("id").asText(null);
         if (id != null && !id.isBlank()) {
@@ -125,6 +133,7 @@ public class CveSearchService {
         return "UNKNOWN";
     }
 
+    // here we get the summary text from the cve data
     private String extractSummary(JsonNode cve) {
         String summary = cve.path("summary").asText(null);
         if (summary != null && !summary.isBlank()) {
@@ -147,6 +156,7 @@ public class CveSearchService {
         return "";
     }
 
+    // extarct the cvss score from the common places where the circl api may store it
     private Double extractCvss(JsonNode cve) {
         if (cve.hasNonNull("cvss")) {
             return cve.get("cvss").asDouble();
@@ -174,6 +184,7 @@ public class CveSearchService {
         return null;
     }
 
+    // this checks a metrics array so can get the first available cvss base score
     private Double extractCvssFromMetrics(JsonNode metrics) {
         if (!metrics.isArray()) {
             return null;
@@ -199,6 +210,7 @@ public class CveSearchService {
         return null;
     }
 
+    // get the published date then format it to display
     private String extractPublished(JsonNode cve) {
         String published = cve.path("Published").asText(null);
         if (published != null && !published.isBlank()) {
@@ -211,6 +223,7 @@ public class CveSearchService {
         return formatDate(cve.path("cveMetadata").path("datePublished").asText(""));
     }
 
+    // just converting raw api data into date format
     private String formatDate(String raw) {
         if (raw == null || raw.isBlank()) {
             return "";
@@ -225,11 +238,13 @@ public class CveSearchService {
         }
     }
 
+    // if the matches version is checked
     private boolean matchesVersion(JsonNode cve, String version) {
         if (version == null || version.isBlank()) {
             return true;
         }
         String v = version.trim();
+        // first try to check the version using the actual structure from the CVE data but if not the summary text fallbacl is used
         JsonNode affected = cve.path("containers").path("cna").path("affected");
         if (affected.isArray()) {
             for (JsonNode a : affected) {
@@ -259,10 +274,12 @@ public class CveSearchService {
         return summary.contains(v);
     }
 
+    // checks if the submitted version falls inside an affected version range
     private boolean isVersionInRange(String targetVersion,
                                      String lowerBound,
                                      String upperExclusive,
                                      String upperInclusive) {
+        // i compared the dotted versions numerically just so that ranges like 9.4.0 to 9.4.60 actually work properly
         Integer lowerComparison = compareNumericVersions(targetVersion, lowerBound);
         if (lowerComparison == null) {
             return false;
@@ -287,6 +304,7 @@ public class CveSearchService {
         return false;
     }
 
+    //  compares two dotted version numbers part by part as numbers
     private Integer compareNumericVersions(String left, String right) {
         if (left == null || right == null || left.isBlank() || right.isBlank()) {
             return null;
@@ -311,6 +329,7 @@ public class CveSearchService {
         return 0;
     }
 
+    // converts one part of a dotted version number into an integer
     private Integer parseVersionPart(String value) {
         if (value == null || value.isBlank() || !value.matches("\\d+")) {
             return null;
@@ -322,6 +341,7 @@ public class CveSearchService {
         }
     }
 
+    // splitting the name into vend/prod format
     private String[] deriveVendorProduct(String name) {
         String normalized = name == null ? "" : name.trim().toLowerCase();
         if (normalized.isEmpty()) {
