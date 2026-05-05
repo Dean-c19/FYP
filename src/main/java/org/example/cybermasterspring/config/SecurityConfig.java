@@ -20,17 +20,18 @@ import java.time.LocalDateTime;
 public class SecurityConfig {
 
     private final UserRepository userRepository;
-
     public SecurityConfig(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
+    // loads a user from the db and converts it into the spring security format thats used during the login
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+            // the enabled value is also mapped here so disabled users are blocked from logging in
             UserDetails userDetails = org.springframework.security.core.userdetails.User
                     .withUsername(user.getUsername())
                     .password(user.getPassword())
@@ -42,11 +43,13 @@ public class SecurityConfig {
         };
     }
 
+    // this creates the password encoder used to hash and also verify passwords with bcrypt
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // tells spring security to use the user lookup and password checking for when a user logs in
     @Bean
     public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
                                                             PasswordEncoder passwordEncoder) {
@@ -56,6 +59,8 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    // shows which routes are public and what needs admin access
+    // also how login and logout works
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    DaoAuthenticationProvider authProvider,
@@ -88,6 +93,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // after a succesful login this runs so that the last log in time is updated before sending them to the dashboard
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler(UserRepository userRepository) {
         return (request, response, authentication) -> {

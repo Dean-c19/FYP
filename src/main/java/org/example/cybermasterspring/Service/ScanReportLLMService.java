@@ -23,6 +23,7 @@ public class ScanReportLLMService {
     private final String openAiApiKey;
     private final String openAiModel;
 
+    // this service needs json parsing, a http client and the configured openai settings to then generate the ai parts of the report
     public ScanReportLLMService(ObjectMapper objectMapper,
                                 @Value("${openai.api.key}") String openAiApiKey,
                                 @Value("${openai.model}") String openAiModel) {
@@ -31,7 +32,7 @@ public class ScanReportLLMService {
         this.openAiApiKey = openAiApiKey;
         this.openAiModel = openAiModel;
     }
-
+    // this actually builds the ai part of the report by creating a prompt and sending it to openapi and parsing the returned json
     public ScanReportLLM buildLLMFields(String softwareName,
                                         String softwareVersion,
                                         int totalVulnerabilities,
@@ -55,6 +56,7 @@ public class ScanReportLLMService {
         return parseResponse(rawResponse);
     }
 
+    // prompting so that the ai only uses the scans fact to generate the fields and not inventing data
     private String buildPrompt(String softwareName,
                                String softwareVersion,
                                int totalVulnerabilities,
@@ -111,6 +113,7 @@ public class ScanReportLLMService {
         );
     }
 
+    // to create the request body in the format expected by the openai respones api
     private Map<String, Object> buildRequestBody(String prompt) {
         Map<String, Object> inputText = new LinkedHashMap<>();
         inputText.put("type", "input_text");
@@ -126,6 +129,7 @@ public class ScanReportLLMService {
         return requestBody;
     }
 
+    // this sends the prompt to openai and returns the raw json response
     private String executeRequest(Map<String, Object> requestBody) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -140,6 +144,7 @@ public class ScanReportLLMService {
         return response.getBody();
     }
 
+    // this parses the api response and converts the returned json fields into the report object used by the main report service
     private ScanReportLLM parseResponse(String rawResponse) {
         try {
             JsonNode root = objectMapper.readTree(rawResponse);
@@ -157,6 +162,7 @@ public class ScanReportLLMService {
         }
     }
 
+    //  this removes markdown code fences in case the model wraps the json even though the prompt asked for raw json only
     private String cleanJsonText(String jsonText) {
         String cleaned = jsonText == null ? "" : jsonText.trim();
         if (cleaned.startsWith("```")) {
@@ -166,6 +172,7 @@ public class ScanReportLLMService {
         return cleaned.trim();
     }
 
+    // look through the responses api output structure and then pulls out the actual text returned by the model
     private String extractOutputText(JsonNode root) {
         JsonNode output = root.path("output");
         if (!output.isArray()) {
@@ -191,6 +198,7 @@ public class ScanReportLLMService {
         throw new IllegalStateException("OpenAI response did not contain output text content");
     }
 
+    // this converts a json array node into a plain list of non blank strings for the report bullets
     private List<String> readStringList(JsonNode node) {
         if (!node.isArray()) {
             return List.of();

@@ -15,6 +15,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final String adminRegistrationPassword;
 
+    // service that handles the main account creation logic and also uses the configured admin registration password when needed
     public UserServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            @Value("${app.admin.registration-password:}") String adminRegistrationPassword) {
@@ -23,6 +24,7 @@ public class UserServiceImpl implements UserService {
         this.adminRegistrationPassword = adminRegistrationPassword;
     }
 
+    // this creates a new user after checking duplicate details, matching passwords, and optional admin registration rules
     @Override
     @Transactional
     public User registerNewUser(UserRegistrationDto dto) {
@@ -40,6 +42,7 @@ public class UserServiceImpl implements UserService {
         }
 
         boolean isAdmin = dto.isAdmin();
+        // a user must provide the admin password if they are tying to register as one
         if (isAdmin) {
             if (dto.getAdminPassword() == null || dto.getAdminPassword().isBlank()) {
                 throw new RuntimeException("Admin password is required");
@@ -52,6 +55,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
+        // the password is hashed before it saves so that the db never stores plain text passwords
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(isAdmin ? "ROLE_ADMIN" : "ROLE_USER");
         user.setEnabled(true);

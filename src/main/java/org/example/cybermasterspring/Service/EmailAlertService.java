@@ -12,10 +12,12 @@ public class EmailAlertService {
 
     private final JavaMailSender mailSender;
 
+    // this service sends email alerts when a finished scan contains high severitys
     public EmailAlertService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
 
+    // when a high risk is detected this creates and then sends the alert email using the report data
     public void sendHighRiskScanAlert(String recipientEmail,
                                       String softwareName,
                                       String softwareVersion,
@@ -30,6 +32,7 @@ public class EmailAlertService {
         mailSender.send(message);
     }
 
+    // this turns the report object into the plain text email body to be sent to the user
     private String buildHighRiskScanBody(String softwareName,
                                          String softwareVersion,
                                          ScanReport report) {
@@ -77,6 +80,7 @@ public class EmailAlertService {
         );
     }
 
+    // for formatting a list of report bullets so that they read clearly inside the plain text email
     private String formatList(List<String> items) {
         if (items == null || items.isEmpty()) {
             return "- None";
@@ -88,6 +92,7 @@ public class EmailAlertService {
                 .orElse("- None");
     }
 
+    // this replaces missing or blank text with a fallback so that the email still reads properly
     private String safeText(String value) {
         return value == null || value.isBlank() ? "Not available" : value;
     }

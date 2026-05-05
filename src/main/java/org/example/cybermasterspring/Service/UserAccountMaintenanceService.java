@@ -13,10 +13,12 @@ public class UserAccountMaintenanceService {
 
     private final UserRepository userRepository;
 
+    // this service handles the scheduled background check for the accounts that should be disabled after inactivity a month
     public UserAccountMaintenanceService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
+    // this runs every day at 2am and disables users whose last login is older than one month
     @Scheduled(cron = "0 0 2 * * *")
     public void disableInactiveUsers() {
         LocalDateTime cutoff = LocalDateTime.now().minusMonths(1);

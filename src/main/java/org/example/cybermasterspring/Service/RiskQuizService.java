@@ -27,12 +27,14 @@ public class RiskQuizService {
     private final ObjectMapper objectMapper;
     private final RiskQuizRepository riskQuizRepository;
 
+    // constructor connects the quiz service to jackson and the quiz repository
     public RiskQuizService(ObjectMapper objectMapper,
                            RiskQuizRepository riskQuizRepository) {
         this.objectMapper = objectMapper;
         this.riskQuizRepository = riskQuizRepository;
     }
 
+    // load the quiz questions from the JSON file then turns them into java objects
     public List<RiskQuizQuestion> getQuestions() {
         try {
             ClassPathResource resource = new ClassPathResource("risk-quiz-questions.json");
@@ -45,11 +47,13 @@ public class RiskQuizService {
         }
     }
 
+    // calcualtion for the final quiz result from the answers that were submitted by the user
     public RiskQuizResult calculateResult(Map<String, String> answers) {
         List<RiskQuizQuestion> questions = getQuestions();
         Map<String, Integer> categoryScores = new LinkedHashMap<>();
         int totalScore = 0;
 
+        // loop to add up the total score and then also tracks how much risk comes from each category
         for (RiskQuizQuestion question : questions) {
             String selectedValue = answers.get(question.getId());
             if (selectedValue == null || selectedValue.isBlank()) {
@@ -71,12 +75,14 @@ public class RiskQuizService {
         );
     }
 
+    // return only the questions that should be visible for how the quiz is currently answered
     public List<RiskQuizQuestion> getVisibleQuestions(Map<String, String> answers) {
         return getQuestions().stream()
                 .filter(question -> shouldShowQuestion(question, answers))
                 .toList();
     }
 
+    // load the latest saved quiz result for one user so it can then be displayed on the dashboard for them
     public RiskQuizSummary getLatestSummary(String username) {
         return riskQuizRepository.findTopByUserUsernameOrderByCompletedAtDesc(username)
                 .map(riskQuiz -> new RiskQuizSummary(
@@ -88,6 +94,7 @@ public class RiskQuizService {
                 .orElse(null);
     }
 
+    // save the quiz result and recomendations to the db
     public void saveResult(User user, RiskQuizResult result, List<String> recommendations) {
         RiskQuiz riskQuiz = new RiskQuiz();
         riskQuiz.setUser(user);
@@ -99,6 +106,7 @@ public class RiskQuizService {
         riskQuizRepository.save(riskQuiz);
     }
 
+    // build the recommendations so that it is based on the highest scoring risk categories
     public List<String> buildRecommendations(Map<String, Integer> categoryScores) {
         if (categoryScores == null || categoryScores.isEmpty()) {
             return List.of(
@@ -108,6 +116,7 @@ public class RiskQuizService {
 
         List<String> recommendations = new ArrayList<>();
 
+        // the top 3 highest scores categories are then used to decide what recommendations to return
         categoryScores.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()))
                 .limit(3)
@@ -119,6 +128,7 @@ public class RiskQuizService {
                 .toList();
     }
 
+    // used to find the answer option object that matches the value that the user had submitted
     private RiskQuizOption findSelectedOption(RiskQuizQuestion question, String selectedValue) {
         if (question.getOptions() == null) {
             return null;
@@ -131,6 +141,7 @@ public class RiskQuizService {
         return null;
     }
 
+    // check if a question has to be shown based on its show if conditions
     private boolean shouldShowQuestion(RiskQuizQuestion question, Map<String, String> answers) {
         if (question.getShowIf() == null || question.getShowIf().isEmpty()) {
             return true;
@@ -143,7 +154,7 @@ public class RiskQuizService {
         }
         return true;
     }
-
+    // just to match a recommendation to each category
     private String getRecommendationForCategory(String category) {
         return switch (category) {
             case "Access Control" -> "Strengthen access controls by enabling multi-factor authentication for all accounts and tightening administrator protections.";
@@ -157,6 +168,7 @@ public class RiskQuizService {
         };
     }
 
+    // then convert the recommendations list into json so it can be stored in the db
     private String toJson(List<String> recommendations) {
         try {
             return objectMapper.writeValueAsString(recommendations == null ? List.of() : recommendations);
@@ -165,6 +177,7 @@ public class RiskQuizService {
         }
     }
 
+    // to turn the saved recommendations JSON back to a normal list
     private List<String> fromJson(String recommendationsJson) {
         try {
             return objectMapper.readValue(
@@ -177,6 +190,7 @@ public class RiskQuizService {
         }
     }
 
+    // converts the final total score into the risk level thats displayed to the user
     private String determineRiskLevel(int totalScore) {
         if (totalScore >= 51) {
             return "Critical";

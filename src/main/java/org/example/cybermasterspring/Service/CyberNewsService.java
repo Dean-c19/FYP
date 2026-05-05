@@ -20,9 +20,11 @@ import java.util.List;
 public class CyberNewsService {
     private static final String FEED_URL = "https://thehackernews.com/feeds/posts/default";
 
+    // used to load the latest news articles from the hacker news rss feed
     public List<CyberNews> getLatest(int limit) {
         List<CyberNews> items = new ArrayList<>();
         try (XmlReader reader = new XmlReader(new URL(FEED_URL))) {
+            // rome user here to actually read the rss feed and then turn it into normal feed entries
             SyndFeed feed = new SyndFeedInput().build(reader);
             List<SyndEntry> entries = feed.getEntries();
             int max = Math.min(limit, entries.size());
@@ -42,8 +44,10 @@ public class CyberNewsService {
         return items;
     }
 
+    // opens the article page and builds the summary to view for it
     public CyberNewsArticle getArticleSummary(String url) {
         try {
+            // jsoup to then request the article page and read the html
             Document doc = Jsoup.connect(url)
                     .userAgent("Mozilla/5.0 (CyberMaster)")
                     .timeout(8000)
@@ -59,6 +63,7 @@ public class CyberNewsService {
         }
     }
 
+    // try to find an image url for a news item from the rss feed
     private String extractImageUrl(SyndEntry entry) {
         if (entry.getEnclosures() != null) {
             for (var enclosure : entry.getEnclosures()) {
@@ -87,6 +92,7 @@ public class CyberNewsService {
         return null;
     }
 
+    // finds the main og:image value from the article page to display the image
     private String extractOgImage(Document doc) {
         Element og = doc.selectFirst("meta[property=og:image], meta[name=og:image]");
         if (og != null) {
@@ -98,6 +104,7 @@ public class CyberNewsService {
         return null;
     }
 
+    // pull out the paragraphs used as the article summary
     private List<String> extractSummaryParagraphs(Document doc, int limit) {
         List<String> paragraphs = new ArrayList<>();
         Elements candidates = doc.select("article p");

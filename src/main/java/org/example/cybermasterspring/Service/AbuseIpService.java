@@ -34,13 +34,16 @@ public class AbuseIpService {
     private Instant lastFetchedAt = Instant.EPOCH;
     private List<ThreatEvent> cached = List.of();
 
+    // constructor that sets up the threat service and loads any saved cache from disk when the app starts
     public AbuseIpService(GeoIpService geoIpService, @Value("${abuseipdb.api.key:}") String apiKey) {
         this.geoIpService = geoIpService;
         this.apiKey = apiKey;
         loadCacheFromDisk();
     }
 
+    // returns the threat events for the live map and uses the cached data when it is still valid
     public List<ThreatEvent> getThreatEvents() {
+        // if the cached data is still within the six hour limit then reuse it instead of calling the api again
         if (Instant.now().isBefore(lastFetchedAt.plus(CACHE_TTL)) && !cached.isEmpty()) {
             return cached;
         }
@@ -71,6 +74,7 @@ public class AbuseIpService {
             }
 
             List<ThreatEvent> events = new ArrayList<>();
+            // every returned ip is searched in the geo db so that it can be placed into the frontend map
             for (JsonNode item : data) {
                 String ip = item.path("ipAddress").asText(null);
                 int score = item.path("abuseConfidenceScore").asInt(0);
@@ -90,10 +94,12 @@ public class AbuseIpService {
         }
     }
 
+    // point to the local file to thats used to store the saved threat cache
     private File cacheFile() {
         return new File("abuseipdb-cache.json");
     }
 
+    // save the current threat events list to the local cache file
     private void saveCacheToDisk() {
         try {
             String json = objectMapper.writeValueAsString(cached);
@@ -102,6 +108,7 @@ public class AbuseIpService {
         }
     }
 
+    // load the threat cache from the disk and also restores the time it was last updated
     private void loadCacheFromDisk() {
         File file = cacheFile();
         if (!file.exists()) {

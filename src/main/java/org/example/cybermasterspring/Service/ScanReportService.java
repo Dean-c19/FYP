@@ -18,10 +18,12 @@ public class ScanReportService {
 
     private final ScanReportLLMService scanReportLLMService;
 
+    // constructor connects the report service to the llm service thats used for the ai written sections
     public ScanReportService(ScanReportLLMService scanReportLLMService) {
         this.scanReportLLMService = scanReportLLMService;
     }
 
+    // build the full scan report thats got from the parsed software and the matched findings
     public ScanReport buildReport(List<SoftwareItem> parsedItems, List<CveFinding> findings) {
         String title = "Vulnerability Scan Summary";
         if (!parsedItems.isEmpty()) {
@@ -42,6 +44,7 @@ public class ScanReportService {
         double maxCvss = -1.0;
         boolean hasScoredFinding = false;
 
+        // here i count how many findings are either low, medium and high severity and tracks cvss score
         for (CveFinding finding : findings) {
             Double cvss = finding.getCvss();
             if (cvss == null) {
@@ -61,6 +64,7 @@ public class ScanReportService {
         }
 
         String overallRiskLevel;
+        // the highest scored finding from the scan results decides the overall risk
         if (maxCvss >= 7.0) {
             overallRiskLevel = "High";
         } else if (maxCvss >= 4.0) {
@@ -73,6 +77,7 @@ public class ScanReportService {
             overallRiskLevel = "None";
         }
 
+        // the notable issues section are the top findings sorted by cvss then turned into a short readable report lines
         List<String> notableIssues = findings.stream()
                 .sorted(Comparator.comparing(
                         (CveFinding finding) -> finding.getCvss() == null ? -1.0 : finding.getCvss()
@@ -91,6 +96,7 @@ public class ScanReportService {
        String softwareVersion = parsedItems.isEmpty() ? "" : parsedItems.get(0).getVersion();
         ScanReportLLM llmFields;
         try {
+            // the llm writes the narrative parts of the report after the facts have been calculated
             llmFields = scanReportLLMService.buildLLMFields(
                     softwareName,
                     softwareVersion,
@@ -102,6 +108,7 @@ public class ScanReportService {
                     notableIssues
             );
         } catch (RuntimeException e) {
+            // if the ai fails then the system falls back to how i originally coded it so the report can still be created
             log.warn("Falling back to local report wording because OpenAI generation failed", e);
             llmFields = null;
         }
@@ -130,6 +137,7 @@ public class ScanReportService {
         );
     }
 
+    // the local fallback wording for the report if the ai fails
     private ScanReportLLM buildFallbackLLMFields(String softwareName,
                                                  String softwareVersion,
                                                  int totalVulnerabilities,
